@@ -1,0 +1,151 @@
+graph LR
+
+GW[API GATEWAY]
+AUTH[IDENTITY AND AUTHORIZATION SERVICE]
+INC[INCIDENT SERVICE]
+SESSION[SESSION SERVICE]
+QUEUE[QUEUE AND PRIORITY SERVICE]
+ORCH[LLM ORCHESTRATOR]
+TOOLS[TOOL ACCESS SERVICE]
+APP[ACTION AND APPROVAL SERVICE]
+TRAIL[TRAIL SERVICE]
+AUDIT[AUDIT SERVICE]
+NOTIF[NOTIFICATION SERVICE]
+
+OBS[OBSERVABILITY AND RELIABILITY SERVICE]
+
+STORE[(METRICS AND TELEMETRY STORE - Metrics - Health - Dependency status - Latency - Error rates)]
+
+ALERT[ALERT MANAGER]
+
+R1["POST /observability/metrics
+Body
+{
+ service: session-service
+ metric: active_sessions
+ value: 5
+}"]
+
+R2["POST /observability/latency
+Body
+{
+ service: tool-access
+ operation: database_query
+ latency_ms: 1250
+ status: success
+}"]
+
+R3["POST /observability/dependency
+Body
+{
+ service: notification-service
+ dependency: slack
+ status: unavailable
+ error: timeout
+}"]
+
+R4["GET /observability/health"]
+
+R5["GET /observability/metrics"]
+
+R6["GET /observability/reliability"]
+
+H1["GET /health/live"]
+H2["GET /health/ready"]
+
+VALIDATE[VALIDAR TELEMETRIA]
+
+COLLECT[RECIBIR TELEMETRIA]
+
+STOREMETRIC[PERSISTIR METRICA]
+
+AGG[AGREGAR METRICAS]
+
+PERF[CALCULAR THROUGHPUT P95 P99]
+
+AVAIL[CALCULAR AVAILABILITY]
+
+REL[CALCULAR RELIABILITY]
+
+HEALTH[CONSTRUIR ESTADO DE HEALTH]
+
+DEGRADE[DETECTAR DEGRADACION PARCIAL]
+
+RULES[EVALUAR REGLAS DE ALERTA]
+
+OK[200 OK]
+DEGRADED[200 DEGRADED]
+E400[400 INVALID METRIC]
+E503[503 TELEMETRY STORE UNAVAILABLE]
+
+GW --> R1
+AUTH --> R1
+INC --> R1
+SESSION --> R1
+QUEUE --> R1
+ORCH --> R1
+TOOLS --> R1
+APP --> R1
+TRAIL --> R1
+AUDIT --> R1
+NOTIF --> R1
+
+GW --> R2
+INC --> R2
+SESSION --> R2
+QUEUE --> R2
+ORCH --> R2
+TOOLS --> R2
+APP --> R2
+TRAIL --> R2
+AUDIT --> R2
+NOTIF --> R2
+
+INC --> R3
+ORCH --> R3
+TOOLS --> R3
+NOTIF --> R3
+
+R1 --> OBS
+R2 --> OBS
+R3 --> OBS
+R4 --> OBS
+R5 --> OBS
+R6 --> OBS
+
+OBS --> H1
+OBS --> H2
+
+R1 --> VALIDATE
+R2 --> VALIDATE
+R3 --> VALIDATE
+
+VALIDATE -->|Invalido| E400
+VALIDATE -->|Valido| COLLECT
+
+COLLECT --> STOREMETRIC
+STOREMETRIC --> STORE
+
+STORE -->|Fallo| E503
+STORE -->|Persistido| AGG
+
+AGG --> PERF
+AGG --> AVAIL
+AGG --> REL
+AGG --> HEALTH
+
+HEALTH --> DEGRADE
+
+PERF --> RULES
+AVAIL --> RULES
+REL --> RULES
+DEGRADE --> RULES
+
+RULES --> ALERT
+
+R4 --> HEALTH
+R5 --> STORE
+R6 --> REL
+
+HEALTH -->|Operativo| OK
+HEALTH -->|Fallo parcial| DEGRADED

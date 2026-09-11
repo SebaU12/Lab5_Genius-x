@@ -1,0 +1,128 @@
+graph LR
+
+GW[API GATEWAY]
+ORB[LLM ORCHESTRATOR]
+
+INC[INCIDENT SERVICE]
+
+AUTH[IDENTITY AND AUTHORIZATION SERVICE]
+AUD[AUDIT SERVICE]
+OBS[OBSERVABILITY SERVICE]
+
+TICKET[(TICKETERA - SOURCE OF TRUTH)]
+
+CB[CIRCUIT BREAKER - TICKETERA]
+TIME[TIMEOUT CONTROL]
+
+H1["GET /health/live"]
+H2["GET /health/ready"]
+
+R1["GET /incidents/INC-12345"]
+
+R2["GET /incidents/INC-12345/history"]
+
+R3["POST /incidents/INC-12345/route
+Body
+{
+ target_area: Payments
+ reason: Possible product failure
+}"]
+
+R4["POST /incidents/INC-12345/escalations
+Body
+{
+ type: support
+ reason: Customer reports issue persists
+}"]
+
+R5["PATCH /incidents/INC-12345/status
+Body
+{
+ status: resolved
+ resolution: Configuration corrected
+}"]
+
+R6["POST /incidents/INC-12345/resolution
+Body
+{
+ root_cause: Invalid configuration
+ resolution: Configuration corrected
+ verified: true
+ evidence_ref: EVID-77
+}"]
+
+V[VALIDAR TICKET Y OPERACION]
+
+READ[CONSULTAR ESTADO ACTUAL]
+HISTORY[CONSULTAR HISTORIAL]
+ROUTE[REDIRIGIR INCIDENTE]
+ESC[GESTIONAR ESCALACION]
+UPDATE[ACTUALIZAR ESTADO]
+VERIFY[REGISTRAR RESOLUCION VERIFICADA]
+
+OK[200 OK]
+CREATED[201 CREATED]
+
+E400[400 BAD REQUEST]
+E403[403 FORBIDDEN]
+E404[404 NOT FOUND]
+E503[503 TICKETERA UNAVAILABLE]
+
+GW --> R1
+GW --> R2
+GW --> R3
+GW --> R4
+GW --> R5
+GW --> R6
+
+ORB --> R1
+ORB --> R2
+
+R1 --> INC
+R2 --> INC
+R3 --> INC
+R4 --> INC
+R5 --> INC
+R6 --> INC
+
+INC --> H1
+INC --> H2
+
+INC --> V
+V --> AUTH
+
+AUTH -->|No autorizado| E403
+
+AUTH -->|GET ticket| READ
+AUTH -->|GET history| HISTORY
+AUTH -->|POST route| ROUTE
+AUTH -->|POST escalation| ESC
+AUTH -->|PATCH status| UPDATE
+AUTH -->|POST resolution| VERIFY
+
+READ --> TIME
+HISTORY --> TIME
+ROUTE --> TIME
+ESC --> TIME
+UPDATE --> TIME
+VERIFY --> TIME
+
+TIME --> CB
+CB --> TICKET
+
+TIME -->|Timeout| E503
+CB -->|Circuit open| E503
+
+TICKET -->|No existe| E404
+
+TICKET -->|Consulta exitosa| OK
+TICKET -->|Actualizacion exitosa| OK
+TICKET -->|Escalacion creada| CREATED
+TICKET -->|Resolucion registrada| OK
+
+ROUTE --> AUD
+ESC --> AUD
+UPDATE --> AUD
+VERIFY --> AUD
+
+INC --> OBS

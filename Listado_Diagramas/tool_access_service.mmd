@@ -1,0 +1,156 @@
+graph LR
+
+ORCH[LLM ORCHESTRATOR]
+
+TOOLS[TOOL ACCESS SERVICE]
+
+AUTH[IDENTITY AND AUTHORIZATION SERVICE]
+AUDIT[AUDIT SERVICE]
+OBS[OBSERVABILITY SERVICE]
+
+EXECDB[(TOOL EXECUTION STORE - Correlation IDs - Idempotency keys - Execution status)]
+
+DB[(DATABASE)]
+SLACK[(SLACK)]
+REPO[(CODE REPOSITORY)]
+DOCS[(DOCUMENTATION)]
+
+CBDB[CIRCUIT BREAKER - DATABASE]
+CBSL[CIRCUIT BREAKER - SLACK]
+CBREPO[CIRCUIT BREAKER - REPOSITORY]
+CBDOC[CIRCUIT BREAKER - DOCUMENTATION]
+
+R1["POST /tools/database/query
+Body
+{
+ session_id: SES-001
+ ticket_id: INC-12345
+ query: SELECT status FROM orders WHERE id = 9001
+}"]
+
+R2["POST /tools/slack/search
+Body
+{
+ session_id: SES-001
+ ticket_id: INC-12345
+ query: payment timeout
+}"]
+
+R3["POST /tools/repository/search
+Body
+{
+ session_id: SES-001
+ ticket_id: INC-12345
+ repository: payments-api
+ query: PaymentTimeoutException
+}"]
+
+R4["POST /tools/docs/search
+Body
+{
+ session_id: SES-001
+ ticket_id: INC-12345
+ query: payment retry procedure
+}"]
+
+R5["POST /tools/database/action
+Body
+{
+ session_id: SES-001
+ ticket_id: INC-12345
+ action: UPDATE
+ resource: orders
+}"]
+
+H1["GET /health/live"]
+H2["GET /health/ready"]
+
+VALIDATE[VALIDAR SOLICITUD]
+PERM[VALIDAR PERMISOS EFECTIVOS]
+TYPE[CLASIFICAR TOOL Y OPERACION]
+
+SAFE[VALIDAR SEGURIDAD DE OPERACION]
+
+EXEC[REGISTRAR Y EJECUTAR OPERACION]
+
+FILTER[FILTRAR RESULTADO POR PERMISOS]
+
+VERIFY[MARCAR RESULTADO COMO VERIFICADO]
+
+OK[200 OK]
+
+E400[400 INVALID TOOL REQUEST]
+E403[403 FORBIDDEN]
+E503[503 TOOL UNAVAILABLE]
+BLOCK[409 CRITICAL ACTION REQUIRES APPROVAL]
+
+ORCH --> R1
+ORCH --> R2
+ORCH --> R3
+ORCH --> R4
+ORCH --> R5
+
+R1 --> TOOLS
+R2 --> TOOLS
+R3 --> TOOLS
+R4 --> TOOLS
+R5 --> TOOLS
+
+TOOLS --> H1
+TOOLS --> H2
+
+TOOLS --> VALIDATE
+
+VALIDATE -->|Invalido| E400
+VALIDATE -->|Valido| PERM
+
+PERM --> AUTH
+
+AUTH -->|No autorizado| E403
+AUTH -->|Autorizado| TYPE
+
+TYPE -->|DB lectura| CBDB
+TYPE -->|Slack lectura| CBSL
+TYPE -->|Repo lectura| CBREPO
+TYPE -->|Docs lectura| CBDOC
+TYPE -->|Modificacion| SAFE
+
+SAFE -->|Critica sin aprobacion| BLOCK
+SAFE -->|Autorizada| EXEC
+
+EXEC --> EXECDB
+EXEC --> CBDB
+
+CBDB --> DB
+CBSL --> SLACK
+CBREPO --> REPO
+CBDOC --> DOCS
+
+CBDB -->|Circuit open| E503
+CBSL -->|Circuit open| E503
+CBREPO -->|Circuit open| E503
+CBDOC -->|Circuit open| E503
+
+DB -->|Fallo o timeout| E503
+SLACK -->|Fallo o timeout| E503
+REPO -->|Fallo o timeout| E503
+DOCS -->|Fallo o timeout| E503
+
+DB -->|Resultado| FILTER
+SLACK -->|Resultado| FILTER
+REPO -->|Resultado| FILTER
+DOCS -->|Resultado| FILTER
+
+FILTER --> VERIFY
+
+VERIFY --> EXECDB
+VERIFY --> AUDIT
+VERIFY --> OK
+
+TOOLS --> OBS
+
+OK --> ORCH
+E403 --> ORCH
+E400 --> ORCH
+E503 --> ORCH
+BLOCK --> ORCH

@@ -217,3 +217,22 @@ Debe poder conocerse:
 * Resultado de las modificaciones.
 * Respuesta final del ticket.
 * Fecha y responsable del cierre.
+
+### 15. Validación de resolución para aprendizaje
+
+Necesita que las resoluciones técnicas verificadas puedan contribuir a mejorar futuras investigaciones de Balbuena sin convertir hipótesis o respuestas no confirmadas en conocimiento de entrenamiento.
+
+Debe poder:
+
+* Registrar claramente la causa raíz verificada cuando haya sido identificada.
+* Registrar la solución o acción finalmente aplicada.
+* Asociar evidencia que permita determinar que la solución resolvió el incidente cuando sea posible.
+* Diferenciar una resolución confirmada de una hipótesis, workaround temporal o intento fallido.
+* Mantener identificadas las queries y acciones que realmente fueron ejecutadas y tuvieron un resultado verificado.
+* Permitir que las resoluciones verificadas sean consideradas como fuente para construir datasets de mejora de Balbuena.
+* Mantener la información sensible sujeta a las mismas reglas de autorización, protección y sanitización antes de cualquier uso para entrenamiento.
+* Mantener trazabilidad entre la resolución registrada y el ticket original.
+
+Juanma no entrena ni promueve directamente nuevas versiones del modelo. Su responsabilidad continúa siendo resolver y documentar correctamente el incidente; Genius-x utiliza posteriormente esa información dentro de un pipeline controlado de curación, entrenamiento y evaluación.
+
+

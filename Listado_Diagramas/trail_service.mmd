@@ -1,0 +1,103 @@
+graph LR
+
+SESSION[SESSION SERVICE]
+ORCH[LLM ORCHESTRATOR]
+DATASET[TRAINING DATASET SERVICE]
+
+TRAIL[TRAIL SERVICE]
+
+AUTH[IDENTITY AND AUTHORIZATION SERVICE]
+OBS[OBSERVABILITY SERVICE]
+
+STORE[(TRAIL STORAGE - Trails - Findings - Sources - Queries - Actions - Verified results)]
+
+R1["POST /trails
+Body
+{
+ session_id: SES-001
+ ticket_id: INC-12345
+ close_reason: inactivity
+ summary: Payment timeout investigated
+ sources: DB Slack Docs
+ findings: Retry configuration incorrect
+ result: Cause identified
+}"]
+
+R2["GET /tickets/INC-12345/trails"]
+
+R3["GET /trails/TRAIL-501"]
+
+H1["GET /health/live"]
+H2["GET /health/ready"]
+
+VALIDATE[VALIDAR SESION TICKET Y USUARIO]
+
+PERM[VALIDAR ACCESO]
+
+BUILD[CONSTRUIR TRAIL ESTRUCTURADO]
+
+CLASSIFY[CLASIFICAR CONTENIDO - Hipotesis - Hallazgo verificado - Query - Accion - Resultado]
+
+SAVE[PERSISTIR TRAIL]
+
+LOAD[RECUPERAR TRAIL]
+
+FILTER[FILTRAR INFORMACION AUTORIZADA]
+
+RESPONSE[CONSTRUIR RESPUESTA HISTORICA]
+
+CREATED[201 CREATED]
+OK[200 OK]
+
+E400[400 INVALID TRAIL]
+E403[403 FORBIDDEN]
+E404[404 TRAIL NOT FOUND]
+E503[503 TRAIL STORAGE UNAVAILABLE]
+
+SESSION --> R1
+
+ORCH --> R2
+ORCH --> R3
+
+DATASET --> R2
+DATASET --> R3
+
+R1 --> TRAIL
+R2 --> TRAIL
+R3 --> TRAIL
+
+TRAIL --> H1
+TRAIL --> H2
+
+R1 --> VALIDATE
+
+VALIDATE --> AUTH
+
+AUTH -->|No autorizado| E403
+AUTH -->|Autorizado| PERM
+
+PERM --> BUILD
+BUILD --> CLASSIFY
+CLASSIFY --> SAVE
+
+SAVE --> STORE
+
+STORE -->|Guardado| CREATED
+STORE -->|Fallo| E503
+
+R2 --> LOAD
+R3 --> LOAD
+
+LOAD --> STORE
+
+STORE -->|No existe| E404
+STORE -->|Encontrado| FILTER
+
+FILTER --> AUTH
+
+AUTH -->|No autorizado| E403
+AUTH -->|Autorizado| RESPONSE
+
+RESPONSE --> OK
+
+TRAIL --> OBS

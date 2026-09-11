@@ -1,4 +1,4 @@
-# Requerimientos No Funcionales — Genius-x v3
+# Requerimientos No Funcionales — Genius-x v4
 
 > **Alcance:** fase **R — Requerimientos** de REDALE para el servicio Genius-x.
 >
@@ -249,6 +249,9 @@
     * Tiempo de espera en cola.
     * Tokens de contexto utilizados.
     * Errores de tools.
+    * Versión de Balbuena utilizada por sesión.
+    * Cantidad de tool calls y pasos de orquestación cuando sean medibles.
+    * Resultados agregados de benchmarks de calidad del agente, incluyendo Tool Correctness, Query Safety, Task Completion y Task Efficiency.
 
 31. **RNF-031 — Medición de performance**  
     **Usuarios beneficiados:** responsables operativos / Ingeniería
@@ -326,4 +329,84 @@
     * Genius-x deberá diseñarse considerando disponibilidad y tolerancia a fallos.
     * La falla de un componente individual no debería causar la pérdida del trail ni una modificación de datos no confirmada.
     * Cuando una dependencia falle, el sistema deberá preferir una respuesta explícita de degradación antes que una respuesta incorrecta.
-    * Los mecanismos concretos de health checking, balanceo, circuit breaking, redundancia o failover se definirán en **L — Listar componentes**.
+    * La falla del pipeline de entrenamiento o evaluación no deberá afectar la disponibilidad de la versión productiva de Balbuena.
+    * Los mecanismos concretos de health checking, balanceo, circuit breaking, redundancia o failover se definirán en **L — Listar componentes** y **E — Escalamiento**.
+
+
+41. **RNF-041 — Aislamiento del agent harness**  
+    **Usuarios afectados:** Mauro Bobadilla / Juanma Torres
+
+    * Balbuena no deberá acceder directamente a dependencias evitando los controles del harness.
+    * Toda tool call deberá pasar por los controles de autorización, filtrado y trazabilidad correspondientes.
+    * Las operaciones de modificación deberán continuar sujetas a las reglas de aprobación aunque sean propuestas por una nueva versión del modelo.
+    * Un cambio de versión de Balbuena no deberá ampliar automáticamente privilegios ni capacidades de ejecución.
+
+42. **RNF-042 — Calidad de datos de entrenamiento**  
+    **Usuarios beneficiados:** Ingeniería / responsables operativos
+
+    * Los datasets de entrenamiento deberán construirse únicamente con ejemplos que cumplan los criterios de curación definidos.
+    * Las hipótesis no confirmadas, intentos fallidos y respuestas no verificadas no deberán utilizarse como ground truth positivo.
+    * Los ejemplos deberán preservar la distinción entre información verificada, inferida y fallida.
+    * La calidad de los ejemplos deberá poder auditarse antes de su utilización en entrenamiento.
+
+43. **RNF-043 — Privacidad y protección de datos en datasets**  
+    **Usuarios afectados:** Mauro Bobadilla / Juanma Torres / Anderson Carcamo
+
+    * Los datos utilizados para entrenamiento o evaluación deberán respetar las reglas de autorización y protección de información del sistema.
+    * Credenciales, secretos e información privilegiada innecesaria deberán excluirse o sanitizarse antes de ingresar a un dataset.
+    * La preparación de datasets no deberá otorgar acceso a información que el proceso o responsable no esté autorizado a consultar.
+    * La información del Customer deberá mantenerse protegida de acuerdo con las mismas restricciones aplicadas durante la operación normal.
+
+44. **RNF-044 — Trazabilidad de entrenamiento**  
+    **Usuarios beneficiados:** Ingeniería / responsables operativos
+
+    * Cada versión candidata deberá poder relacionarse con el dataset, configuración y ejecución de entrenamiento que la produjo.
+    * Cada ejemplo de entrenamiento deberá mantener trazabilidad hacia su ticket de origen o registro fuente correspondiente.
+    * La trazabilidad deberá permitir investigar posteriormente por qué un ejemplo fue incluido o excluido.
+
+45. **RNF-045 — Reproducibilidad y versionado del modelo**  
+    **Usuarios beneficiados:** Ingeniería / responsables operativos
+
+    * Cada modelo candidato y productivo deberá poseer un identificador de versión inequívoco.
+    * Deberá mantenerse registro de dataset, configuración, fecha y resultados de benchmark asociados a cada versión.
+    * Las sesiones deberán registrar la versión de Balbuena que las atendió.
+    * Una nueva versión no deberá sobrescribir la trazabilidad histórica de versiones anteriores.
+
+46. **RNF-046 — Independencia entre entrenamiento y evaluación**  
+    **Usuarios beneficiados:** Ingeniería / responsables operativos
+
+    * El benchmark deberá utilizar datos separados de los ejemplos exactos utilizados para entrenamiento.
+    * Deberá mantenerse un conjunto estable de evaluación para comparar versiones a lo largo del tiempo.
+    * La incorporación de nuevos casos de benchmark no deberá modificar retroactivamente los resultados históricos de versiones ya evaluadas.
+
+47. **RNF-047 — Gates mínimos de seguridad para promoción**  
+    **Usuarios beneficiados:** Ingeniería / responsables operativos
+
+    * Toda versión candidata deberá aprobar los controles de autorización y permisos antes de ser promovida.
+    * Deberá aprobar los casos de seguridad de acciones destructivas.
+    * Deberá aprobar los casos de Query Safety y no alucinación de resultados de tools.
+    * Una falla en cualquiera de estos gates críticos deberá impedir la promoción automática de la candidata.
+
+48. **RNF-048 — Prevención de regresiones críticas**  
+    **Usuarios beneficiados:** Ingeniería / responsables operativos
+
+    * Una versión candidata no deberá promoverse únicamente por mejorar una métrica promedio.
+    * No deberá introducir una regresión crítica de seguridad, permisos, no alucinación o protección de datos.
+    * Tool Correctness, Action Plan Quality y Task Completion deberán mantenerse o mejorar respecto del baseline definido para promoción.
+    * Los resultados de regresión deberán quedar registrados junto con la decisión de promoción o rechazo.
+
+49. **RNF-049 — Aislamiento de recursos del pipeline de entrenamiento**  
+    **Usuarios afectados:** Mauro Bobadilla / Juanma Torres
+
+    * El proceso de entrenamiento, evaluación o preparación de datasets no deberá consumir los slots operativos configurados para las sesiones productivas de Balbuena.
+    * Una ejecución de training no deberá degradar de forma no controlada la latencia o disponibilidad del servicio productivo.
+    * Si existe competencia por recursos físicos, la operación productiva deberá mantener la prioridad definida por el equipo.
+    * El fallo de un job de entrenamiento deberá quedar aislado del runtime productivo.
+
+50. **RNF-050 — Recuperación y rollback de versión del modelo**  
+    **Usuarios beneficiados:** Mauro Bobadilla / Juanma Torres / Ingeniería
+
+    * Genius-x deberá permitir volver a una versión productiva anterior cuando una nueva versión presente una regresión relevante.
+    * El rollback no deberá provocar pérdida de trails, auditorías, sesiones históricas ni trazabilidad de entrenamiento.
+    * La versión restaurada deberá quedar identificada como versión productiva vigente.
+    * El motivo y fecha del rollback deberán ser registrables.

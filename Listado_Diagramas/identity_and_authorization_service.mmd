@@ -1,0 +1,84 @@
+graph LR
+
+GW[API GATEWAY]
+
+AUTH[IDENTITY AND AUTHORIZATION SERVICE]
+
+IDP[IDENTITY PROVIDER]
+
+AUTHDB[(AUTHORIZATION STORE - Usuarios internos - Roles - Permisos - Politicas - Recursos autorizados)]
+
+CACHE[(AUTH CACHE - Roles y permisos - TTL corto)]
+
+OBS[OBSERVABILITY SERVICE]
+
+CB[CIRCUIT BREAKER - Identity Provider]
+
+R1["POST /authorize
+Body
+{
+ user_id: U-102
+ action: read_ticket
+ resource: INC-12345
+}"]
+
+R2["POST /authorize
+Body
+{
+ user_id: U-205
+ action: modify_database
+ resource: customer_orders
+}"]
+
+R3["POST /authorize
+Body
+{
+ user_id: U-301
+ action: approve_action
+ resource: ACT-99
+}"]
+
+LOAD[OBTENER IDENTIDAD]
+ROLE[RESOLVER ROL EFECTIVO]
+PERM[OBTENER PERMISOS]
+CHECK[VALIDAR ACCION Y RECURSO]
+
+ALLOW[200 AUTHORIZED]
+DENY[403 FORBIDDEN]
+UNAUTH[401 UNAUTHORIZED]
+UNAVAILABLE[503 IDENTITY PROVIDER UNAVAILABLE]
+
+GW --> R1
+GW --> R2
+GW --> R3
+
+R1 --> AUTH
+R2 --> AUTH
+R3 --> AUTH
+
+AUTH --> LOAD
+
+LOAD --> CB
+CB --> IDP
+
+CB -->|Proveedor no disponible| UNAVAILABLE
+IDP -->|Identidad invalida| UNAUTH
+IDP -->|Identidad valida| ROLE
+
+ROLE --> CACHE
+
+CACHE -->|Hit| PERM
+CACHE -->|Miss| AUTHDB
+AUTHDB --> PERM
+
+PERM --> CHECK
+
+CHECK -->|Permitido| ALLOW
+CHECK -->|No permitido| DENY
+
+ALLOW --> GW
+DENY --> GW
+UNAUTH --> GW
+UNAVAILABLE --> GW
+
+AUTH --> OBS

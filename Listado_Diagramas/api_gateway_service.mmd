@@ -1,0 +1,115 @@
+graph LR
+
+SUP[SUPPORT]
+ENG[INGENIERO]
+
+LB[LOAD BALANCER]
+
+GW1[API GATEWAY - INSTANCE 1]
+GW2[API GATEWAY - INSTANCE 2]
+
+H1["GET /health/live"]
+H2["GET /health/ready"]
+
+S["POST /sessions
+{
+ ticket_id: INC-12345
+}"]
+
+T["GET /tickets/INC-12345"]
+
+Q["POST /queue
+{
+ ticket_id: INC-12345
+}"]
+
+DQ["DELETE /queue/Q-701"]
+
+AP["POST /actions/ACT-99/approve
+{
+ decision: approve
+}"]
+
+V[VALIDAR REQUEST]
+AUTH[IDENTITY AND AUTHORIZATION SERVICE]
+R[RESOLVER RUTA]
+
+LIMIT[OVERLOAD PROTECTION - Rate limiting - Concurrency control]
+
+SES[SESSION SERVICE]
+INC[INCIDENT SERVICE]
+QUE[QUEUE AND PRIORITY SERVICE]
+APP[ACTION AND APPROVAL SERVICE]
+
+TIME[DOWNSTREAM TIMEOUT]
+
+OBS[OBSERVABILITY SERVICE]
+
+E400[400 BAD REQUEST]
+E401[401 UNAUTHORIZED]
+E403[403 FORBIDDEN]
+E429[429 TOO MANY REQUESTS]
+E503[503 SERVICE UNAVAILABLE]
+
+RESP[RESPUESTA]
+
+SUP --> LB
+ENG --> LB
+
+LB --> GW1
+LB --> GW2
+
+LB -->|Health check| H2
+H2 --> GW1
+H2 --> GW2
+
+GW1 --> H1
+GW2 --> H1
+
+GW1 --> LIMIT
+GW2 --> LIMIT
+
+LIMIT -->|Limite superado| E429
+LIMIT -->|Aceptado| S
+LIMIT -->|Aceptado| T
+LIMIT -->|Aceptado| Q
+LIMIT -->|Aceptado| DQ
+LIMIT -->|Aceptado| AP
+
+S --> V
+T --> V
+Q --> V
+DQ --> V
+AP --> V
+
+V -->|Invalido| E400
+V -->|Valido| AUTH
+
+AUTH -->|No autenticado| E401
+AUTH -->|No autorizado| E403
+AUTH -->|Autorizado| R
+
+R -->|POST sessions| TIME
+R -->|GET tickets| TIME
+R -->|POST queue| TIME
+R -->|DELETE queue| TIME
+R -->|POST approve| TIME
+
+TIME --> SES
+TIME --> INC
+TIME --> QUE
+TIME --> APP
+
+TIME -->|Timeout o dependencia no disponible| E503
+
+SES --> RESP
+INC --> RESP
+QUE --> RESP
+APP --> RESP
+
+GW1 --> OBS
+GW2 --> OBS
+
+RESP --> LB
+LB --> SUP
+LB --> ENG

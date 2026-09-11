@@ -1,0 +1,129 @@
+graph LR
+
+GW[API GATEWAY]
+
+APP[ACTION AND APPROVAL SERVICE]
+TOOLS[TOOL ACCESS SERVICE]
+DATASET[TRAINING DATASET SERVICE]
+
+AUDIT[AUDIT SERVICE]
+
+AUTH[IDENTITY AND AUTHORIZATION SERVICE]
+OBS[OBSERVABILITY SERVICE]
+
+STORE[(AUDIT LOG STORAGE - Append only - Actions - Approvals - Failures - Security events)]
+
+R1["POST /audit/events
+Body
+{
+ user_id: U-205
+ role: engineer_operator
+ ticket_id: INC-12345
+ session_id: SES-001
+ action: UPDATE
+ resource: orders
+ result: success
+}"]
+
+R2["POST /audit/events
+Body
+{
+ user_id: U-301
+ role: engineer_approver
+ ticket_id: INC-12345
+ session_id: SES-001
+ action: APPROVE_DELETE
+ resource: orders
+ approver_id: U-301
+ result: approved
+}"]
+
+R3["POST /audit/events
+Body
+{
+ user_id: U-205
+ role: engineer_operator
+ ticket_id: INC-12345
+ session_id: SES-001
+ action: DELETE
+ resource: orders
+ result: failed
+ failure_reason: database_timeout
+}"]
+
+R4["GET /audit/tickets/INC-12345"]
+
+R5["GET /audit/sessions/SES-001"]
+
+H1["GET /health/live"]
+H2["GET /health/ready"]
+
+VALIDATE[VALIDAR EVENTO]
+
+ENRICH[COMPLETAR METADATA - Timestamp - Correlation ID - Action ID]
+
+DEDUP[VALIDAR EVENTO DUPLICADO]
+
+SAVE[PERSISTIR EVENTO APPEND ONLY]
+
+PERM[VALIDAR ACCESO A CONSULTA]
+
+QUERY[CONSULTAR AUDITORIA]
+
+FILTER[FILTRAR RESULTADOS AUTORIZADOS]
+
+CREATED[201 CREATED]
+OK[200 OK]
+
+E400[400 INVALID AUDIT EVENT]
+E403[403 FORBIDDEN]
+E404[404 AUDIT RECORD NOT FOUND]
+E503[503 AUDIT STORAGE UNAVAILABLE]
+
+APP --> R1
+APP --> R2
+TOOLS --> R3
+
+R1 --> AUDIT
+R2 --> AUDIT
+R3 --> AUDIT
+
+AUDIT --> H1
+AUDIT --> H2
+
+R1 --> VALIDATE
+R2 --> VALIDATE
+R3 --> VALIDATE
+
+VALIDATE -->|Invalido| E400
+VALIDATE -->|Valido| ENRICH
+
+ENRICH --> DEDUP
+DEDUP --> SAVE
+SAVE --> STORE
+
+STORE -->|Guardado| CREATED
+STORE -->|Fallo| E503
+
+GW --> R4
+GW --> R5
+DATASET --> R4
+DATASET --> R5
+
+R4 --> AUDIT
+R5 --> AUDIT
+
+AUDIT --> PERM
+PERM --> AUTH
+
+AUTH -->|No autorizado| E403
+AUTH -->|Autorizado| QUERY
+
+QUERY --> STORE
+
+STORE -->|No existe| E404
+STORE -->|Encontrado| FILTER
+
+FILTER --> OK
+
+AUDIT --> OBS

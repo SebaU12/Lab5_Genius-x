@@ -1,0 +1,147 @@
+graph LR
+
+PIPE[MODEL IMPROVEMENT PIPELINE]
+EVAL[AGENT EVALUATION SERVICE]
+ORCH[LLM ORCHESTRATOR]
+OBS[OBSERVABILITY SERVICE]
+
+REG[MODEL REGISTRY SERVICE]
+
+RDB[(MODEL REGISTRY STORE - Versions - Status - Dataset lineage - Evaluation refs - Promotion history)]
+
+ART[(MODEL ARTIFACT STORE - Model artifacts - Checkpoints - Candidate binaries)]
+
+R1["POST /models/register
+Body
+{
+ model_version: LLM-V5
+ base_model_version: LLM-V4
+ dataset_id: DS-V12
+ training_run_id: TR-901
+ artifact_ref: MODEL-V5
+}"]
+
+R2["POST /models/LLM-V5/evaluation
+Body
+{
+ evaluation_id: EV-501
+ result: pass
+}"]
+
+R3["POST /models/LLM-V5/promote
+Body
+{
+ decision: promote
+}"]
+
+R4["POST /models/LLM-V5/reject
+Body
+{
+ decision: reject
+ reason: query_safety_regression
+}"]
+
+R5["POST /models/rollback
+Body
+{
+ target_version: LLM-V4
+ reason: production_regression
+}"]
+
+R6["GET /models/production"]
+
+R7["GET /models/LLM-V5"]
+
+H1["GET /health/live"]
+H2["GET /health/ready"]
+
+VALIDATE[VALIDAR VERSION Y LINEAGE]
+
+LOADART[VALIDAR ARTEFACTO]
+
+REGISTER[REGISTRAR VERSION CANDIDATA]
+
+EVALREF[ASOCIAR RESULTADO DE EVALUACION]
+
+CHECK[VALIDAR GATES Y ESTADO]
+
+PROMOTE[MARCAR VERSION PRODUCTIVA]
+
+REJECT[MARCAR VERSION RECHAZADA]
+
+ROLLBACK[VALIDAR VERSION ANTERIOR]
+
+ACTIVATE[ACTIVAR VERSION SELECCIONADA]
+
+HISTORY[REGISTRAR HISTORIAL DE CAMBIO]
+
+OK[200 OK]
+CREATED[201 CREATED]
+
+E400[400 INVALID MODEL VERSION]
+E404[404 MODEL NOT FOUND]
+E409[409 INVALID MODEL STATE]
+E503[503 REGISTRY STORE UNAVAILABLE]
+
+PIPE --> R1
+EVAL --> R2
+
+R1 --> REG
+R2 --> REG
+R3 --> REG
+R4 --> REG
+R5 --> REG
+R6 --> REG
+R7 --> REG
+
+REG --> H1
+REG --> H2
+
+R1 --> VALIDATE
+VALIDATE --> LOADART
+LOADART --> ART
+
+ART -->|Artefacto no existe| E404
+ART -->|Artefacto valido| REGISTER
+
+REGISTER --> RDB
+REGISTER --> CREATED
+
+R2 --> EVALREF
+EVALREF --> RDB
+EVALREF --> OK
+
+R3 --> CHECK
+R4 --> CHECK
+
+CHECK --> RDB
+
+CHECK -->|Estado invalido| E409
+CHECK -->|Gates aprobados| PROMOTE
+CHECK -->|Rechazado| REJECT
+
+PROMOTE --> ACTIVATE
+REJECT --> RDB
+
+ACTIVATE --> RDB
+ACTIVATE --> HISTORY
+
+HISTORY --> RDB
+
+PROMOTE -->|Version productiva| ORCH
+
+R5 --> ROLLBACK
+ROLLBACK --> RDB
+
+RDB -->|Version no disponible| E404
+RDB -->|Version valida| ACTIVATE
+
+ACTIVATE --> OK
+REJECT --> OK
+
+R6 --> RDB
+R7 --> RDB
+
+RDB --> OK
+
+REG --> OBS

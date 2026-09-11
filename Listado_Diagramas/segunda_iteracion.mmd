@@ -1,0 +1,134 @@
+graph LR
+
+SUP[SUPPORT]
+ENG[INGENIERO]
+CUS[CUSTOMER]
+
+T[TICKETERA - Fuente de verdad]
+
+G[GENIUS X ENTRY]
+
+AUTH[ACCESS SERVICE - Identidad - Roles - Permisos]
+
+INC[INCIDENT SERVICE - Estado actual - Historial - Escalaciones - Integracion ticketera]
+
+SES[SESSION SERVICE - Crea y cierra sesiones - Maximo 5 - 100k tokens - Timeout 1 min - Max 30 min]
+
+QUE[QUEUE SERVICE - Cola voluntaria - Prioridad - SLA - Expiracion de turno]
+
+ORB[LLM ORCHESTRATOR - Construye contexto - Controla agent loop - Ejecuta LLM - Coordina tools - Controla respuesta]
+
+TOOL[TOOL ACCESS SERVICE - BD operacional - Slack - Repositorios read only - Documentacion]
+
+APP[ACTION AND APPROVAL SERVICE - Clasifica modificaciones - Controla acciones criticas - Gestiona aprobaciones]
+
+TRAIL[TRAIL SERVICE - Genera trail - Recupera historial - Asocia ticket]
+
+AUD[AUDIT SERVICE - Registra modificaciones - Aprobaciones - Fallos - Eventos de seguridad]
+
+NOTIF[NOTIFICATION SERVICE - Notifica turno mediante Slack]
+
+OBS[OBSERVABILITY SERVICE - Throughput - P95 P99 - Availability - Reliability - Errores]
+
+DATASET[TRAINING DATASET SERVICE - Selecciona resoluciones verificadas - Sanitiza - Cura ejemplos - Versiona datasets]
+
+TRAIN[MODEL IMPROVEMENT PIPELINE - Job periodico - Fine tuning - Genera modelo candidato]
+
+EVAL[AGENT EVALUATION SERVICE - Action Plan Quality - Tool Correctness - Query Safety - Task Completion - Regression]
+
+REG[MODEL REGISTRY - Modelos productivos y candidatos - Promocion - Rollback]
+
+LLM[LLM LOCAL]
+
+OPDB[(BD OPERACIONAL)]
+SLACK[(SLACK)]
+REPO[(REPOSITORIOS)]
+DOC[(DOCUMENTACION)]
+
+SESSIONDB[(SESSION STATE STORE)]
+QUEUEDB[(QUEUE STORE)]
+APPDB[(ACTION AND APPROVAL STORE)]
+
+TRAILDB[(TRAIL STORAGE)]
+AUDDB[(AUDIT LOG - APPEND ONLY)]
+
+DATASETDB[(TRAINING DATASET STORE)]
+EVALDB[(EVALUATION RESULTS STORE)]
+MODELDB[(MODEL ARTIFACT STORE)]
+
+METDB[(METRICS AND TELEMETRY STORE)]
+
+CUS -->|Reporta y consulta| T
+
+SUP -->|Solicita asistencia| G
+ENG -->|Solicita asistencia| G
+
+G --> AUTH
+AUTH --> INC
+INC --> T
+
+AUTH --> SES
+SES --> SESSIONDB
+
+SES -->|Hay capacidad| ORB
+SES -->|Sin capacidad| QUE
+
+QUE --> QUEUEDB
+QUE -->|Turno disponible| NOTIF
+NOTIF --> SLACK
+
+ORB --> LLM
+LLM --> ORB
+
+ORB --> TOOL
+ORB --> TRAIL
+
+TOOL --> OPDB
+TOOL --> SLACK
+TOOL --> REPO
+TOOL --> DOC
+TOOL --> INC
+
+ORB -->|Operacion de modificacion| APP
+APP --> APPDB
+APP --> TOOL
+APP --> AUD
+
+TRAIL --> TRAILDB
+AUD --> AUDDB
+
+SES --> AUD
+QUE --> AUD
+TOOL --> AUD
+
+TRAIL --> DATASET
+AUD --> DATASET
+INC --> DATASET
+
+DATASET --> DATASETDB
+DATASETDB --> TRAIN
+
+TRAIN -->|Genera modelo candidato| REG
+REG --> MODELDB
+
+REG -->|Modelo candidato| EVAL
+DATASETDB -->|Benchmark separado| EVAL
+EVAL --> EVALDB
+EVAL -->|Resultado benchmark| REG
+
+REG -->|Version productiva| ORB
+
+SES --> OBS
+QUE --> OBS
+ORB --> OBS
+TOOL --> OBS
+INC --> OBS
+APP --> OBS
+TRAIN --> OBS
+EVAL --> OBS
+
+OBS --> METDB
+
+ORB --> G
+G --> SUP
+G --> ENG

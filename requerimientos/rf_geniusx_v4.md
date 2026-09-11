@@ -1,4 +1,4 @@
-# Requerimientos Funcionales — Genius-x v3
+# Requerimientos Funcionales — Genius-x v4
 
 > **Alcance:** fase **R — Requerimientos** de REDALE para el rediseño de Genius-x.
 >
@@ -207,6 +207,11 @@
     * Permitir cerrar el ticket cuando el rol del ingeniero lo autorice.
     * Registrar fecha, usuario y resultado del cierre.
     * Mantener la solución disponible en el historial del ticket.
+    * Permitir diferenciar una causa raíz verificada de una hipótesis o causa aún no confirmada.
+    * Permitir identificar si la solución aplicada quedó confirmada, fue un workaround temporal o resultó fallida.
+    * Permitir asociar evidencia de resolución cuando exista.
+    * Mantener identificadas las queries y acciones realmente ejecutadas y su resultado.
+    * Permitir marcar una resolución verificada como candidata para procesos posteriores de aprendizaje de Balbuena.
 
 17. **RF-017 — Autorización basada en roles para Ingenieros**  
     **Usuarios:** Juanma Torres / Ingenieros
@@ -302,8 +307,11 @@
     * Incluir un resumen de lo explorado.
     * Registrar fuentes consultadas.
     * Registrar hallazgos relevantes.
-    * Registrar acciones propuestas.
-    * Registrar acciones ejecutadas y aprobaciones.
+    * Diferenciar hipótesis de hallazgos verificados cuando sea posible.
+    * Registrar queries propuestas y distinguirlas de las queries realmente ejecutadas.
+    * Registrar acciones propuestas y distinguirlas de las acciones realmente ejecutadas.
+    * Registrar aprobaciones y rechazos asociados a acciones críticas.
+    * Registrar resultados verificados de queries y acciones cuando corresponda.
     * Registrar el resultado de la sesión.
 
 25. **RF-025 — Recuperación de trail en una nueva sesión**  
@@ -479,7 +487,122 @@
     * Rol efectivo del usuario.
     * Ticket.
     * Inicio y fin de sesión.
+    * Versión de Balbuena utilizada.
     * Tokens de contexto utilizados.
     * Motivo de cierre.
     * Cantidad de tools utilizadas.
+    * Cantidad de pasos de orquestación cuando sea medible.
     * Estado final de la sesión.
+
+
+41. **RF-041 — Operación de Balbuena dentro del agent harness**  
+    **Usuarios beneficiados:** Mauro Bobadilla / Juanma Torres  
+    **Actor técnico:** Balbuena
+
+    El sistema deberá:
+    * Preparar y entregar a Balbuena únicamente contexto autorizado para el usuario, ticket y sesión activos.
+    * Canalizar el acceso a ticketera, base de datos, Slack, repositorios y documentación mediante controles del harness.
+    * Impedir que Balbuena invoque dependencias evitando autorización, filtrado, auditoría o controles de reliability.
+    * Permitir que el Orchestrator controle el ciclo de análisis, selección de tools, recepción de resultados y generación de respuesta.
+    * Interrumpir o pausar el flujo cuando una operación requiera autorización humana.
+    * Aplicar límites configurados de sesión, contexto, duración, tools y pasos de orquestación.
+    * Mantener separadas las responsabilidades: Balbuena propone y razona; Genius-x valida, autoriza, ejecuta y registra.
+
+42. **RF-042 — Registro de resolución verificada para aprendizaje**  
+    **Usuario:** Juanma Torres
+
+    El sistema deberá:
+    * Permitir registrar una causa raíz verificada cuando haya sido identificada.
+    * Permitir registrar la solución o acción finalmente aplicada.
+    * Permitir asociar evidencia de que la solución resolvió el incidente cuando sea posible.
+    * Diferenciar una resolución confirmada de una hipótesis, workaround temporal o intento fallido.
+    * Mantener identificadas las queries y acciones ejecutadas con resultado verificado.
+    * Mantener trazabilidad entre la resolución verificada y el ticket original.
+
+43. **RF-043 — Construcción de ejemplos de entrenamiento**  
+    **Usuarios beneficiados:** responsables operativos / Ingeniería  
+    **Actor técnico:** Balbuena
+
+    El sistema deberá:
+    * Identificar tickets cerrados con causa raíz y resolución suficientemente documentadas.
+    * Permitir construir ejemplos de entrenamiento a partir del trail, resolución confirmada, evidencia, tools, queries y acciones verificadas.
+    * Excluir como respuesta objetivo hipótesis descartadas, intentos fallidos y contenido no validado.
+    * Sanitizar, excluir o transformar información sensible antes de incorporarla al dataset.
+    * Mantener trazabilidad entre cada ejemplo y el ticket del cual se originó.
+
+44. **RF-044 — Gestión de dataset de entrenamiento versionado**  
+    **Usuarios beneficiados:** responsables operativos / Ingeniería
+
+    El sistema deberá:
+    * Consolidar ejemplos previamente curados en datasets de entrenamiento.
+    * Asignar una versión identificable a cada dataset.
+    * Registrar qué ejemplos forman parte de cada versión.
+    * Mantener la relación entre dataset, tickets de origen y fecha de construcción.
+    * Permitir excluir ejemplos que posteriormente sean considerados inválidos para futuras versiones.
+
+45. **RF-045 — Ejecución periódica de mejora del modelo**  
+    **Usuarios beneficiados:** responsables operativos / Ingeniería
+
+    El sistema deberá:
+    * Permitir ejecutar un proceso periódico de fine-tuning o mejora de Balbuena utilizando datasets previamente curados.
+    * Permitir configurar la periodicidad del proceso.
+    * Utilizar inicialmente un job semanal como decisión del equipo.
+    * Permitir omitir una ejecución cuando no exista cantidad o calidad suficiente de nuevos ejemplos válidos.
+    * Registrar dataset, configuración, fecha y resultado de cada ejecución.
+
+46. **RF-046 — Generación de versión candidata de Balbuena**  
+    **Usuarios beneficiados:** responsables operativos / Ingeniería
+
+    El sistema deberá:
+    * Generar una versión candidata como resultado del proceso de mejora del modelo.
+    * Asignar un identificador de versión a la candidata.
+    * Mantener la versión productiva disponible mientras la candidata es evaluada.
+    * Impedir que una ejecución de entrenamiento sustituya automáticamente a la versión productiva.
+
+47. **RF-047 — Benchmark de versiones candidatas**  
+    **Usuarios beneficiados:** responsables operativos / Ingeniería
+
+    El sistema deberá evaluar cada versión candidata, como mínimo, en:
+    * Action Plan Quality.
+    * Tool Correctness.
+    * Tool Usage.
+    * Query Correctness.
+    * Query Safety.
+    * Task Completion.
+    * Task Efficiency.
+    * No Hallucination de resultados de tools.
+    * Permission Compliance.
+    * Destructive Action Safety.
+    * Registrar los resultados del benchmark asociados a la versión evaluada.
+
+48. **RF-048 — Separación entre entrenamiento y evaluación**  
+    **Usuarios beneficiados:** responsables operativos / Ingeniería
+
+    El sistema deberá:
+    * Mantener separado el dataset utilizado para entrenamiento del dataset utilizado para evaluación.
+    * Evitar utilizar el mismo ejemplo exacto en entrenamiento y benchmark.
+    * Mantener un conjunto estable de casos representativos para detectar regresiones.
+    * Incluir escenarios de Support, Customer Escalation, Support Escalation y Engineering Escalation.
+    * Incluir casos de fallo de tools, permisos insuficientes, estado desactualizado y acciones destructivas.
+    * Permitir incorporar nuevos casos de evaluación cuando se descubran fallos relevantes.
+
+49. **RF-049 — Versionado, promoción y rollback de Balbuena**  
+    **Usuarios beneficiados:** responsables operativos / Ingeniería
+
+    El sistema deberá:
+    * Registrar qué versión de Balbuena atendió cada sesión.
+    * Mantener relación entre versión, dataset, configuración y resultados de benchmark.
+    * Permitir promover una versión candidata cuando cumpla los criterios definidos.
+    * Registrar versiones rechazadas y su motivo de rechazo.
+    * Mantener identificable la versión productiva vigente.
+    * Permitir rollback hacia una versión productiva anterior cuando se detecte una regresión.
+
+50. **RF-050 — Validación controlada antes de promoción completa**  
+    **Usuarios beneficiados:** responsables operativos / Ingeniería
+
+    El sistema deberá:
+    * Permitir validar una versión candidata mediante un mecanismo controlado antes de recibir todo el tráfico productivo.
+    * Permitir estrategias de shadow o canary cuando la estrategia operativa lo requiera.
+    * Mantener la respuesta productiva bajo control de la versión vigente durante una evaluación shadow.
+    * Permitir comparar calidad, seguridad, eficiencia y performance entre la candidata y la versión productiva.
+    * Permitir detener la validación y conservar o restaurar la versión productiva ante una regresión.

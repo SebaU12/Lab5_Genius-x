@@ -1,0 +1,73 @@
+graph LR
+
+C[CUSTOMER - Reporta incidentes - Adjunta evidencia - Consulta estado - Informa persistencia]
+
+T[TICKETERA - Fuente de verdad - Mantiene tickets - Estado e historial - Prioridad - Responsable - Escalaciones]
+
+S[SUPPORT - Atiende primera linea - Consulta tickets - Usa Genius X - Propone soluciones - Redirige - Gestiona Support Escalations]
+
+I[INGENIERO - Investiga incidentes - Consulta fuentes - Crea Engineering Escalations - Solicita cambios - Aprueba segun rol - Resuelve y valida soluciones]
+
+G[GENIUS X - Agent Harness - Gestiona sesiones y contexto - Aplica permisos - Controla capacidad y cola - Orquesta tools - Controla acciones criticas - Mantiene trails y auditoria - Reliability y observabilidad]
+
+L[LLM LOCAL - Analiza contexto autorizado - Sugiere diagnostico - Propone planes - Selecciona tools - Genera respuestas - Maximo 5 sesiones]
+
+X[TOOLS - Base de datos - Slack - Repositorios solo lectura - Documentacion]
+
+TR[TRAIL Y DATOS DE RESOLUCION - Historial de sesiones - Hallazgos - Queries y acciones - Resoluciones verificadas]
+
+D[TRAINING DATASET - Ejemplos curados - Datos sanitizados - Dataset versionado]
+
+P[MODEL IMPROVEMENT PIPELINE - Job periodico - Fine tuning - Genera modelo candidato]
+
+E[AGENT EVALUATION - Benchmark - Action Plan Quality - Tool Correctness - Query Safety - Task Completion]
+
+R[MODEL REGISTRY - Version productiva - Versiones candidatas - Resultados benchmark - Rollback]
+
+C -->|Reporta incidente| T
+T -->|Entrega identificador y estado| C
+
+T -->|Envia ticket para atencion| S
+S -->|Registra respuesta o escalacion| T
+
+T -->|Envia escalacion tecnica| I
+I -->|Actualiza resuelve y cierra| T
+
+I -->|Crea Engineering Escalation| T
+
+S -->|Solicita asistencia| G
+G -->|Devuelve analisis y plan| S
+
+I -->|Solicita investigacion| G
+G -->|Devuelve diagnostico y acciones propuestas| I
+
+G -->|Gestiona sesion y contexto| L
+L -->|Devuelve razonamiento o solicitud de tool| G
+
+G -->|Consulta ticket actual| T
+T -->|Devuelve informacion actual| G
+
+G -->|Ejecuta consulta autorizada| X
+X -->|Devuelve resultado verificado| G
+
+G -->|Sin capacidad ofrece cola| S
+G -->|Sin capacidad ofrece cola| I
+
+G -->|Notifica turno mediante Slack| X
+X -->|Notificacion| S
+X -->|Notificacion| I
+
+G -->|Persiste contexto al finalizar sesion| TR
+I -->|Registra resolucion verificada| TR
+
+TR -->|Resoluciones candidatas| D
+D -->|Dataset curado| P
+
+P -->|Genera candidate model| E
+R -->|Proporciona baseline productivo| E
+
+E -->|Benchmark aprobado| R
+E -->|Benchmark rechazado| R
+
+R -->|Version productiva autorizada| G
+G -->|Usa version productiva| L

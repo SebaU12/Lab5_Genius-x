@@ -12,6 +12,8 @@ Balbuena funciona como un recurso local limitado. En el escenario inicial puede 
 
 Cuando no existe capacidad disponible, Genius-x debe informar al usuario y ofrecerle la opción de ingresar a una cola priorizada. Cuando llegue su turno, el usuario debe ser notificado por Slack.
 
+Balbuena es el modelo de lenguaje; **Genius-x es el agent harness** que controla su ejecución. El harness administra identidad y autorización, contexto, sesiones, acceso a tools, aprobaciones, auditoría, reliability, observabilidad y ciclo de vida del modelo. Balbuena no debe acceder a dependencias ni ejecutar acciones al margen de estos controles.
+
 ## Necesidades y restricciones de Balbuena
 
 ### 1. Consulta de la ticketera
@@ -303,6 +305,8 @@ Debe poder:
 * Continuar con otras fuentes cuando sea posible.
 * Evitar ejecutar acciones cuyas precondiciones no pudieron verificarse.
 * Registrar el fallo en el trail.
+* Permitir que el harness aisle dependencias fallidas mediante mecanismos de reliability sin convertir el fallo de una tool en una caída total de Genius-x.
+* Tratar cualquier dato servido desde cache como una copia temporal sujeta a permisos y frescura; la cache no debe reemplazar a una fuente de verdad cuando se requiera información actual.
 
 ### 22. Observabilidad de uso
 
@@ -336,3 +340,127 @@ Toda utilización relevante de Balbuena debe poder relacionarse con:
 * Operaciones ejecutadas.
 * Resultado.
 * Motivo de cierre de la sesión.
+
+### 24. Operación dentro del agent harness
+
+Balbuena necesita operar únicamente dentro de los controles proporcionados por Genius-x.
+
+El sistema debe:
+
+* Preparar y entregar a Balbuena únicamente contexto autorizado para el usuario, ticket y sesión activos.
+* Canalizar el acceso a ticketera, base de datos, Slack, repositorios y documentación mediante los servicios de acceso controlado del harness.
+* Impedir que Balbuena invoque directamente una dependencia evitando autorización, filtrado, auditoría o controles de reliability.
+* Permitir que el Orchestrator controle el ciclo de análisis, selección de tools, recepción de resultados y generación de respuesta.
+* Interrumpir o pausar el flujo cuando una operación requiera autorización humana.
+* Aplicar límites configurados de sesión, contexto, duración, tools y pasos de orquestación.
+* Mantener separadas las responsabilidades del modelo y del harness: Balbuena propone y razona; Genius-x valida, autoriza, ejecuta y registra.
+
+### 25. Aprendizaje a partir de incidentes resueltos
+
+Balbuena necesita poder mejorar progresivamente a partir de incidentes cuya resolución haya sido verificada.
+
+Genius-x debe poder:
+
+* Identificar tickets cerrados con causa raíz y resolución suficientemente documentadas.
+* Utilizar el trail, la resolución confirmada, las evidencias, las tools utilizadas, las queries ejecutadas y las acciones verificadas como posibles fuentes para construir ejemplos de entrenamiento.
+* Diferenciar una resolución confirmada de una hipótesis, workaround temporal, intento fallido o recomendación no validada.
+* Evitar utilizar como respuesta objetivo contenido generado por Balbuena que no haya sido validado por evidencia o intervención humana cuando corresponda.
+* Sanitizar, excluir o transformar información sensible antes de incorporarla a un dataset de entrenamiento.
+* Mantener trazabilidad entre cada ejemplo de entrenamiento y el ticket del cual se originó.
+* Preservar las reglas de autorización y privacidad durante la preparación de datos de entrenamiento.
+
+### 26. Pipeline periódico de mejora del modelo
+
+Genius-x necesita permitir la mejora periódica de Balbuena sin reemplazar automáticamente el modelo productivo.
+
+El sistema debe:
+
+* Consolidar ejemplos previamente curados en un dataset de entrenamiento versionado.
+* Ejecutar un proceso de fine-tuning o mejora del modelo con una periodicidad configurable.
+* Utilizar como decisión inicial un job semanal, sujeto a validación durante la operación.
+* Permitir omitir una ejecución cuando no exista una cantidad o calidad suficiente de nuevos ejemplos válidos.
+* Generar una nueva versión candidata de Balbuena sin sustituir inmediatamente a la versión en producción.
+* Mantener disponible la versión productiva mientras la candidata es evaluada.
+* Registrar dataset, configuración, fecha y resultado de cada ejecución de entrenamiento.
+
+### 27. Benchmark de nuevas versiones
+
+Toda versión candidata de Balbuena necesita demostrar que mantiene o mejora el comportamiento esperado antes de llegar a producción.
+
+El benchmark debe evaluar como mínimo:
+
+* **Action Plan Quality:** calidad y utilidad de los planes de acción propuestos.
+* **Tool Correctness:** selección de la fuente o tool adecuada para cada tarea.
+* **Tool Usage:** uso correcto de parámetros, recursos y secuencia de llamadas.
+* **Query Correctness:** validez técnica de las queries generadas.
+* **Query Safety:** respeto de permisos, mínimo privilegio y restricciones sobre operaciones destructivas.
+* **Task Completion:** capacidad de completar la investigación o producir un plan adecuado.
+* **Task Efficiency:** cantidad de pasos, tools, tokens y tiempo utilizados para completar la tarea.
+* **No Hallucination:** ausencia de resultados de tools inventados o presentados como verificados sin ejecución real.
+* **Permission Compliance:** respeto estricto de los permisos efectivos del usuario.
+* **Destructive Action Safety:** bloqueo de acciones críticas hasta contar con una aprobación válida.
+
+### 28. Separación entre entrenamiento y evaluación
+
+Genius-x necesita evitar que el benchmark mida únicamente información que el modelo ya memorizó durante el entrenamiento.
+
+El sistema debe:
+
+* Mantener separado el dataset utilizado para entrenamiento del dataset utilizado para evaluación.
+* Evitar incluir un mismo ejemplo exacto en entrenamiento y benchmark.
+* Mantener un conjunto estable de casos representativos para detectar regresiones entre versiones.
+* Incluir en el benchmark escenarios de Support, Customer Escalation, Support Escalation y Engineering Escalation.
+* Incluir casos de fallo de tools, permisos insuficientes, estado desactualizado y acciones destructivas.
+* Permitir incorporar nuevos casos de evaluación cuando se descubran fallos relevantes en producción.
+
+### 29. Versionado y ciclo de vida del modelo
+
+Balbuena necesita operar como un modelo versionado y trazable.
+
+Genius-x debe:
+
+* Asignar un identificador de versión a cada modelo candidato y productivo.
+* Registrar qué versión de Balbuena atendió cada sesión.
+* Mantener relación entre versión, dataset de entrenamiento, configuración y resultados de benchmark.
+* Permitir mantener una versión productiva mientras se evalúan candidatas.
+* Promover únicamente versiones que cumplan los criterios de aceptación definidos.
+* Registrar versiones rechazadas y el motivo de rechazo.
+* Permitir rollback hacia una versión productiva anterior cuando se detecte una regresión.
+
+### 30. Gates de seguridad y promoción
+
+Una versión candidata no debe considerarse mejor únicamente por aumentar una métrica promedio.
+
+Antes de promoción debe:
+
+* Cumplir obligatoriamente los benchmarks de autorización y permisos.
+* Cumplir obligatoriamente los benchmarks de seguridad de acciones destructivas.
+* Cumplir obligatoriamente los benchmarks de no alucinación de resultados de tools.
+* Cumplir obligatoriamente los benchmarks de seguridad de queries.
+* Mantener o mejorar el baseline definido para Tool Correctness, Action Plan Quality y Task Completion.
+* No introducir una regresión crítica aunque mejore otras métricas de calidad o performance.
+* Permitir validación en modo controlado, como shadow o canary, antes de recibir todo el tráfico productivo cuando la estrategia de despliegue lo requiera.
+
+### 31. Separación entre conocimiento aprendido y fuente de verdad
+
+El entrenamiento de Balbuena debe mejorar su forma de investigar y razonar, pero no convertir conocimiento dinámico en una fuente permanente de verdad.
+
+Balbuena puede aprender patrones estables como:
+
+* Estrategias de investigación.
+* Selección apropiada de tools.
+* Estructura de planes de acción.
+* Patrones de queries seguras.
+* Formas de relacionar síntomas, componentes y evidencia.
+* Procedimientos recurrentes y criterios de clasificación.
+
+Sin embargo:
+
+* El estado actual de un ticket debe seguir consultándose en la ticketera.
+* Los datos operativos actuales deben seguir consultándose en la fuente correspondiente.
+* El estado actual de producción, responsables, configuraciones y datos de clientes no deben asumirse correctos únicamente porque aparecieron en información utilizada para entrenar una versión anterior.
+* Cuando exista conflicto entre conocimiento aprendido y una fuente de verdad disponible, debe prevalecer la fuente de verdad.
+
+En consecuencia, el **fine-tuning enseña a Balbuena cómo trabajar**, mientras que las **tools proporcionan la realidad actual**.
+
+

@@ -1,16 +1,16 @@
-# Anderson Carcamo — Customer — Genius-x
+# Customer — Genius-x
 
 ## Descripción del usuario
 
-**Anderson Carcamo** representa al **Customer**, es decir, al cliente que experimenta un problema relacionado con un producto o servicio de la empresa.
+**Customer** es el cliente que experimenta un problema relacionado con un producto o servicio de la empresa.
 
-Anderson utiliza la **ticketera o sistema de manejo de incidentes** para reportar y consultar sus problemas. No utiliza directamente Genius-x, Balbuena ni las tools internas.
+Customer utiliza la **ticketera o sistema de manejo de incidentes** para reportar y consultar sus problemas. No utiliza directamente Genius-x, el LLM ni las tools internas.
 
-Su reporte puede originar un Customer Escalation o puede ser atendido inicialmente por Support. Si Mauro Bobadilla entrega una respuesta o plan de acción y Anderson informa posteriormente que el problema continúa, el caso puede convertirse en **Support Escalation**.
+Su reporte puede originar un Customer Escalation o puede ser atendido inicialmente por Support. Si Support entrega una respuesta o plan de acción y Customer informa posteriormente que el problema continúa, el caso puede convertirse en **Support Escalation**.
 
-Genius-x participa de manera interna como apoyo a Support e Ingeniería. La indisponibilidad temporal de Balbuena no debe impedir que Anderson pueda seguir reportando o consultando tickets en la ticketera.
+Genius-x participa de manera interna como apoyo a Support e Ingeniería. La indisponibilidad temporal del El LLM no debe impedir que Customer pueda seguir reportando o consultando tickets en la ticketera.
 
-## Necesidades de Anderson Carcamo
+## Necesidades de Customer
 
 ### 1. Reporte de incidentes
 
@@ -48,10 +48,10 @@ Necesita recibir una respuesta cuando el problema pueda resolverse desde la prim
 
 El proceso debe permitir:
 
-* Que Mauro Bobadilla revise el problema.
+* Que Support revise el problema.
 * Que Support solicite información adicional.
 * Que Support utilice Genius-x como apoyo interno.
-* Que Anderson reciba una solución o plan de acción revisado por Support.
+* Que Customer reciba una solución o plan de acción revisado por Support.
 * Que la respuesta quede registrada en el ticket.
 
 ### 4. Análisis inicial asistido internamente
@@ -65,7 +65,7 @@ Genius-x puede apoyar internamente a Support para:
 * Sugerir una respuesta o plan de acción.
 * Indicar si el caso requiere exploración adicional.
 
-Balbuena no se convierte por ello en el canal directo de atención de Anderson.
+LLM no se convierte por ello en el canal directo de atención de Customer.
 
 ### 5. Customer Escalation
 
@@ -74,7 +74,7 @@ Necesita que un incidente con impacto directo en negocio pueda ser tratado como 
 El sistema debe permitir:
 
 * Identificar el caso como Customer Escalation.
-* Mantener la relación con Anderson.
+* Mantener la relación con Customer.
 * Registrar impacto y prioridad.
 * Mantener trazabilidad.
 * Derivarlo al área responsable cuando sea necesario.
@@ -105,16 +105,16 @@ El sistema debe:
 * No exponer conversaciones internas de Slack.
 * No exponer trails internos que contengan información no destinada al Customer.
 
-### 8. Independencia respecto a Balbuena
+### 8. Independencia respecto a LLM
 
 Necesita que su proceso de atención continúe aunque el LLM esté saturado o temporalmente indisponible.
 
 El sistema debe:
 
-* Permitir crear tickets independientemente de la capacidad de Balbuena.
-* Permitir consultar tickets independientemente de la capacidad de Balbuena.
+* Permitir crear tickets independientemente de la capacidad del LLM.
+* Permitir consultar tickets independientemente de la capacidad del LLM.
 * Mantener Genius-x como herramienta interna para Support e Ingeniería.
-* No requerir que Anderson espere una sesión del LLM para registrar un incidente.
+* No requerir que Customer espere una sesión del LLM para registrar un incidente.
 
 ### 9. Trazabilidad de atención
 
@@ -129,3 +129,4 @@ Debe poder conocerse:
 * Escalamientos realizados.
 * Resolución final.
 * Fecha de cierre.
+

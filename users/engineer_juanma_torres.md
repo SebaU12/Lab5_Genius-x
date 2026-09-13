@@ -1,18 +1,18 @@
-# Juanma Torres — Ingeniero — Genius-x
+# Ingeniero — Genius-x
 
 ## Descripción del usuario
 
-**Juanma Torres** representa al **Ingeniero** encargado de investigar y resolver incidentes técnicos.
+**Ingeniero** es el actor encargado de investigar y resolver incidentes técnicos.
 
 Puede recibir Customer Escalations y Support Escalations redirigidos hacia Ingeniería y también puede originar **Engineering Escalations** cuando el propio equipo técnico detecta un problema para sí mismo o para otra área.
 
-Juanma utiliza a **Balbuena** como asistente técnico. El LLM puede ayudarlo a consultar documentación, repositorios de código en modo lectura, información autorizada en base de datos, Slack y el trail del ticket.
+Ingeniero utiliza al **LLM** como asistente técnico. El El LLM puede ayudarlo a consultar documentación, repositorios de código en modo lectura, información autorizada en base de datos, Slack y el trail del ticket.
 
-El nombre Juanma Torres personifica al actor Ingeniero. En la operación real pueden existir varios ingenieros con **roles diferentes**. Algunos pueden únicamente consultar información, otros pueden solicitar modificaciones y un subconjunto autorizado puede aprobar operaciones críticas.
+Ingeniero representa al actor técnico de Ingeniería. En la operación real pueden existir varios ingenieros con **roles diferentes**. Algunos pueden únicamente consultar información, otros pueden solicitar modificaciones y un subconjunto autorizado puede aprobar operaciones críticas.
 
-Balbuena no debe otorgar más privilegios que los que posea el ingeniero que inició la sesión.
+El LLM no debe otorgar más privilegios que los que posea el ingeniero que inició la sesión.
 
-## Necesidades de Juanma Torres
+## Necesidades de Ingeniero
 
 ### 1. Recepción y análisis de tickets técnicos
 
@@ -27,9 +27,9 @@ Debe poder:
 * Consultar historial de atención.
 * Revisar el trail disponible.
 * Conocer qué acciones realizó Support previamente.
-* Iniciar una sesión con Balbuena asociada al ticket.
+* Iniciar una sesión con el LLM asociada al ticket.
 
-### 2. Investigación técnica con Balbuena
+### 2. Investigación técnica con el LLM
 
 Necesita utilizar al LLM como apoyo durante el diagnóstico.
 
@@ -56,7 +56,7 @@ Debe poder:
 * Pedir explicaciones sobre flujos técnicos.
 * Identificar posibles áreas de fallo.
 
-Balbuena solo utiliza los repositorios en **modo lectura** y no modifica código.
+LLM solo utiliza los repositorios en **modo lectura** y no modifica código.
 
 ### 4. Consulta de documentación
 
@@ -96,7 +96,7 @@ Debe además:
 
 * Aplicar permisos por proyecto, repositorio, documentación, Slack y datos.
 * Denegar por defecto operaciones no autorizadas.
-* Evitar que Balbuena amplíe los permisos del usuario.
+* Evitar que LLM amplíe los permisos del usuario.
 
 ### 7. Solicitud de modificaciones
 
@@ -150,12 +150,12 @@ Necesita reportar incidentes detectados desde Ingeniería.
 Debe poder:
 
 * Crear un Engineering Escalation directamente en la ticketera.
-* Solicitar a Balbuena apoyo para preparar un Engineering Escalation.
+* Solicitar a LLM apoyo para preparar un Engineering Escalation.
 * Generar una descripción técnica sugerida.
 * Asociar evidencia.
 * Asociar producto, servicio o componente afectado.
 * Incorporar referencias de documentación o repositorio.
-* Confirmar humanamente la creación cuando esta haya sido preparada por Balbuena.
+* Confirmar humanamente la creación cuando esta haya sido preparada por LLM.
 * Mantener trazabilidad del origen del ticket.
 
 ### 11. Resolución y cierre del ticket
@@ -188,7 +188,7 @@ Debe poder:
 
 ### 13. Uso de sesiones y cola
 
-Necesita acceder a Balbuena respetando la capacidad del LLM local.
+Necesita acceder a LLM respetando la capacidad del LLM local.
 
 Debe poder:
 
@@ -202,7 +202,7 @@ Debe poder:
 
 ### 14. Auditoría y trazabilidad técnica
 
-Necesita que las acciones realizadas con apoyo de Balbuena puedan reconstruirse.
+Necesita que las acciones realizadas con apoyo del LLM puedan reconstruirse.
 
 Debe poder conocerse:
 
@@ -220,7 +220,7 @@ Debe poder conocerse:
 
 ### 15. Validación de resolución para aprendizaje
 
-Necesita que las resoluciones técnicas verificadas puedan contribuir a mejorar futuras investigaciones de Balbuena sin convertir hipótesis o respuestas no confirmadas en conocimiento de entrenamiento.
+Necesita que las resoluciones técnicas verificadas puedan contribuir a mejorar futuras investigaciones del LLM sin convertir hipótesis o respuestas no confirmadas en conocimiento de entrenamiento.
 
 Debe poder:
 
@@ -229,10 +229,11 @@ Debe poder:
 * Asociar evidencia que permita determinar que la solución resolvió el incidente cuando sea posible.
 * Diferenciar una resolución confirmada de una hipótesis, workaround temporal o intento fallido.
 * Mantener identificadas las queries y acciones que realmente fueron ejecutadas y tuvieron un resultado verificado.
-* Permitir que las resoluciones verificadas sean consideradas como fuente para construir datasets de mejora de Balbuena.
+* Permitir que las resoluciones verificadas sean consideradas como fuente para construir datasets de mejora del LLM.
 * Mantener la información sensible sujeta a las mismas reglas de autorización, protección y sanitización antes de cualquier uso para entrenamiento.
 * Mantener trazabilidad entre la resolución registrada y el ticket original.
 
-Juanma no entrena ni promueve directamente nuevas versiones del modelo. Su responsabilidad continúa siendo resolver y documentar correctamente el incidente; Genius-x utiliza posteriormente esa información dentro de un pipeline controlado de curación, entrenamiento y evaluación.
+Ingeniero no entrena ni promueve directamente nuevas versiones del modelo. Su responsabilidad continúa siendo resolver y documentar correctamente el incidente; Genius-x utiliza posteriormente esa información dentro de un pipeline controlado de curación, entrenamiento y evaluación.
+
 
 

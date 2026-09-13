@@ -1,18 +1,18 @@
-# Mauro Bobadilla — Support — Genius-x
+# Support — Genius-x
 
 ## Descripción del usuario
 
-**Mauro Bobadilla** representa al equipo de **Support** y funciona como la primera línea humana de atención al cliente.
+**Support** representa al equipo de soporte y funciona como la primera línea humana de atención al cliente.
 
-Su responsabilidad principal es recibir los problemas reportados por los clientes, comprender el contexto inicial y tratar de resolverlos antes de que requieran intervención de Ingeniería. Para esto puede apoyarse en **Balbuena**, el LLM local de Genius-x, como asistente de consulta, análisis, documentación y redirección.
+Su responsabilidad principal es recibir los problemas reportados por los clientes, comprender el contexto inicial y tratar de resolverlos antes de que requieran intervención de Ingeniería. Para esto puede apoyarse en el **LLM**, el LLM local de Genius-x, como asistente de consulta, análisis, documentación y redirección.
 
-Mauro puede utilizar Balbuena para resolver consultas de desconocimiento o uso, generar un plan de acción, revisar documentación, consultar antecedentes y explorar información autorizada. Cuando el problema parece corresponder a una falla real del producto, Balbuena puede ayudar a identificar el producto o componente afectado y sugerir el área técnica correspondiente.
+Support puede utilizar el LLM para resolver consultas de desconocimiento o uso, generar un plan de acción, revisar documentación, consultar antecedentes y explorar información autorizada. Cuando el problema parece corresponder a una falla real del producto, LLM puede ayudar a identificar el producto o componente afectado y sugerir el área técnica correspondiente.
 
-Mauro no utiliza a Balbuena como sustituto de su criterio ni como mecanismo para ampliar sus permisos. Su acceso es principalmente de **consulta**, y toda información obtenida mediante el LLM debe respetar los permisos de Support.
+Support no utiliza a LLM como sustituto de su criterio ni como mecanismo para ampliar sus permisos. Su acceso es principalmente de **consulta**, y toda información obtenida mediante el LLM debe respetar los permisos de Support.
 
 Un caso pasa a **Support Escalation** cuando Support ya entregó una respuesta o plan de acción y el cliente informa posteriormente que el problema continúa sin resolverse.
 
-## Necesidades de Mauro Bobadilla
+## Necesidades de Support
 
 ### 1. Consulta y comprensión inicial del ticket
 
@@ -24,13 +24,13 @@ Debe poder:
 * Conocer el estado actual del ticket.
 * Consultar el historial de interacciones previas.
 * Revisar evidencia asociada al incidente.
-* Solicitar a Balbuena un resumen del ticket.
-* Solicitar a Balbuena una explicación del problema.
+* Solicitar a LLM un resumen del ticket.
+* Solicitar a LLM una explicación del problema.
 * Identificar si el caso parece corresponder a desconocimiento, configuración, uso incorrecto o una posible falla real del producto.
 
-### 2. Apoyo de Balbuena para consultas simples
+### 2. Apoyo del LLM para consultas simples
 
-Necesita utilizar a Balbuena para resolver problemas que no requieren intervención inmediata de Ingeniería.
+Necesita utilizar al LLM para resolver problemas que no requieren intervención inmediata de Ingeniería.
 
 Debe poder:
 
@@ -48,14 +48,14 @@ Debe poder:
 
 Necesita reducir el tiempo de atención de casos simples.
 
-Genius-x debe poder apoyar a Mauro para:
+Genius-x debe poder apoyar a Support para:
 
 * Analizar la descripción inicial del ticket.
 * Identificar documentación conocida relacionada.
 * Detectar consultas que parecen resolubles mediante conocimiento existente.
 * Proponer una respuesta o plan de acción inicial.
 * Indicar cuándo el caso requiere exploración humana adicional.
-* Mantener a Mauro como responsable de la comunicación con el Customer.
+* Mantener a Support como responsable de la comunicación con el Customer.
 
 ### 4. Identificación de fallas de producto
 
@@ -63,11 +63,11 @@ Necesita distinguir cuándo un problema requiere investigación técnica.
 
 Debe poder:
 
-* Solicitar a Balbuena que analice la información del ticket.
+* Solicitar a LLM que analice la información del ticket.
 * Comparar el comportamiento reportado con documentación existente.
 * Consultar antecedentes similares.
 * Identificar el producto, servicio o componente potencialmente afectado.
-* Solicitar a Balbuena que sugiera el área técnica correspondiente.
+* Solicitar a LLM que sugiera el área técnica correspondiente.
 * Revisar la evidencia utilizada para esa sugerencia.
 
 ### 5. Redirección al área correspondiente
@@ -78,7 +78,7 @@ Debe poder:
 
 * Conocer el área técnica sugerida.
 * Utilizar información autorizada de Slack para ubicar al equipo correspondiente.
-* Confirmar la redirección sugerida por Balbuena.
+* Confirmar la redirección sugerida por LLM.
 * Registrar el motivo de la redirección.
 * Mantener el contexto relevante del ticket.
 * Evitar que la investigación realizada por Support se pierda al pasar el caso a Ingeniería.
@@ -103,7 +103,7 @@ Necesita conocer qué se investigó previamente para evitar repetir trabajo.
 Debe poder:
 
 * Consultar el trail asociado al ticket.
-* Revisar sesiones anteriores realizadas con Balbuena.
+* Revisar sesiones anteriores realizadas con el LLM.
 * Conocer fuentes consultadas.
 * Conocer hallazgos y planes de acción sugeridos.
 * Conocer acciones propuestas o ejecutadas.
@@ -111,7 +111,7 @@ Debe poder:
 
 El trail no reemplaza la consulta del estado actual del ticket.
 
-### 8. Uso de sesiones de Balbuena
+### 8. Uso de sesiones del LLM
 
 Necesita utilizar el LLM dentro de la capacidad disponible del servicio.
 
@@ -136,8 +136,8 @@ El sistema debe:
 * Mantener el acceso de repositorios en modo lectura cuando esté autorizado.
 * Limitar las consultas de base de datos a información autorizada.
 * Limitar las consultas de Slack a canales autorizados.
-* Impedir que Balbuena revele información privilegiada.
-* Impedir que Mauro utilice al LLM para evadir controles de acceso.
+* Impedir que LLM revele información privilegiada.
+* Impedir que Support utilice al LLM para evadir controles de acceso.
 
 ### 10. Trazabilidad de su atención
 
@@ -153,3 +153,4 @@ Debe poder conocerse:
 * Área a la que se redirigió el ticket.
 * Resultado de la atención.
 * Conversión del caso a Support Escalation cuando corresponda.
+

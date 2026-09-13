@@ -1,20 +1,20 @@
-# Balbuena — LLM local — Genius-x
+# LLM local — Genius-x
 
 ## Descripción del actor
 
-**Balbuena** es el **LLM local** utilizado por Genius-x para asistir a Mauro Bobadilla y Juanma Torres durante el análisis, investigación, documentación y resolución de incidentes.
+**LLM** es el modelo de lenguaje local utilizado por Genius-x para asistir a Support y Ingeniero durante el análisis, investigación, documentación y resolución de incidentes.
 
-Balbuena no es la fuente de verdad del estado de los tickets. La información dinámica debe consultarse en la ticketera o en la fuente correspondiente.
+El LLM no es la fuente de verdad del estado de los tickets. La información dinámica debe consultarse en la ticketera o en la fuente correspondiente.
 
-Puede utilizar tools para consultar base de datos, Slack, repositorios de código y documentación. El acceso efectivo de Balbuena debe respetar los permisos del usuario que inició la sesión.
+Puede utilizar tools para consultar base de datos, Slack, repositorios de código y documentación. El acceso efectivo del LLM debe respetar los permisos del usuario que inició la sesión.
 
-Balbuena funciona como un recurso local limitado. En el escenario inicial puede mantener como máximo **5 sesiones concurrentes**, cada sesión posee un máximo de **100k tokens de contexto**, se cierra después de **1 minuto de inactividad** y no puede permanecer abierta más de **30 minutos**.
+El LLM funciona como un recurso local limitado. En el escenario inicial puede mantener como máximo **5 sesiones concurrentes**, cada sesión posee un máximo de **100k tokens de contexto**, se cierra después de **1 minuto de inactividad** y no puede permanecer abierta más de **30 minutos**.
 
 Cuando no existe capacidad disponible, Genius-x debe informar al usuario y ofrecerle la opción de ingresar a una cola priorizada. Cuando llegue su turno, el usuario debe ser notificado por Slack.
 
-Balbuena es el modelo de lenguaje; **Genius-x es el agent harness** que controla su ejecución. El harness administra identidad y autorización, contexto, sesiones, acceso a tools, aprobaciones, auditoría, reliability, observabilidad y ciclo de vida del modelo. Balbuena no debe acceder a dependencias ni ejecutar acciones al margen de estos controles.
+LLM es el modelo de lenguaje; **Genius-x es el agent harness** que controla su ejecución. El harness administra identidad y autorización, contexto, sesiones, acceso a tools, aprobaciones, auditoría, reliability, observabilidad y ciclo de vida del modelo. El LLM no debe acceder a dependencias ni ejecutar acciones al margen de estos controles.
 
-## Necesidades y restricciones de Balbuena
+## Necesidades y restricciones del LLM
 
 ### 1. Consulta de la ticketera
 
@@ -71,7 +71,7 @@ Debe poder:
 * Identificar componentes relacionados con un problema.
 * Explicar código y flujos técnicos.
 
-El acceso de Balbuena a repositorios es de **solo lectura**.
+El acceso del LLM a repositorios es de **solo lectura**.
 
 ### 5. Acceso a documentación
 
@@ -94,11 +94,11 @@ El sistema debe:
 * Identificar al usuario que inicia la sesión.
 * Conocer su rol efectivo.
 * Limitar fuentes y operaciones según permisos.
-* Impedir que Balbuena revele información no autorizada.
+* Impedir que LLM revele información no autorizada.
 * Denegar por defecto accesos no autorizados.
 * Evitar que un prompt permita ampliar privilegios.
 
-Balbuena nunca debe tener más permisos efectivos que el usuario solicitante.
+LLM nunca debe tener más permisos efectivos que el usuario solicitante.
 
 ### 7. Soporte a distintos roles de Ingeniería
 
@@ -219,7 +219,7 @@ Cuando no exista capacidad, necesita manejar la espera de forma controlada.
 
 El sistema debe:
 
-* Informar al usuario que Balbuena no está disponible.
+* Informar al usuario que LLM no está disponible.
 * Ofrecer la opción de ingresar a una cola.
 * Registrar usuario, ticket, prioridad y tiempo de ingreso.
 * Permitir al usuario abandonar la cola.
@@ -327,7 +327,7 @@ El servicio debe poder registrar:
 
 ### 23. Auditoría y trazabilidad general
 
-Toda utilización relevante de Balbuena debe poder relacionarse con:
+Toda utilización relevante del LLM debe poder relacionarse con:
 
 * Usuario solicitante.
 * Rol efectivo.
@@ -343,35 +343,35 @@ Toda utilización relevante de Balbuena debe poder relacionarse con:
 
 ### 24. Operación dentro del agent harness
 
-Balbuena necesita operar únicamente dentro de los controles proporcionados por Genius-x.
+LLM necesita operar únicamente dentro de los controles proporcionados por Genius-x.
 
 El sistema debe:
 
-* Preparar y entregar a Balbuena únicamente contexto autorizado para el usuario, ticket y sesión activos.
+* Preparar y entregar a LLM únicamente contexto autorizado para el usuario, ticket y sesión activos.
 * Canalizar el acceso a ticketera, base de datos, Slack, repositorios y documentación mediante los servicios de acceso controlado del harness.
-* Impedir que Balbuena invoque directamente una dependencia evitando autorización, filtrado, auditoría o controles de reliability.
+* Impedir que LLM invoque directamente una dependencia evitando autorización, filtrado, auditoría o controles de reliability.
 * Permitir que el Orchestrator controle el ciclo de análisis, selección de tools, recepción de resultados y generación de respuesta.
 * Interrumpir o pausar el flujo cuando una operación requiera autorización humana.
 * Aplicar límites configurados de sesión, contexto, duración, tools y pasos de orquestación.
-* Mantener separadas las responsabilidades del modelo y del harness: Balbuena propone y razona; Genius-x valida, autoriza, ejecuta y registra.
+* Mantener separadas las responsabilidades del modelo y del harness: LLM propone y razona; Genius-x valida, autoriza, ejecuta y registra.
 
 ### 25. Aprendizaje a partir de incidentes resueltos
 
-Balbuena necesita poder mejorar progresivamente a partir de incidentes cuya resolución haya sido verificada.
+LLM necesita poder mejorar progresivamente a partir de incidentes cuya resolución haya sido verificada.
 
 Genius-x debe poder:
 
 * Identificar tickets cerrados con causa raíz y resolución suficientemente documentadas.
 * Utilizar el trail, la resolución confirmada, las evidencias, las tools utilizadas, las queries ejecutadas y las acciones verificadas como posibles fuentes para construir ejemplos de entrenamiento.
 * Diferenciar una resolución confirmada de una hipótesis, workaround temporal, intento fallido o recomendación no validada.
-* Evitar utilizar como respuesta objetivo contenido generado por Balbuena que no haya sido validado por evidencia o intervención humana cuando corresponda.
+* Evitar utilizar como respuesta objetivo contenido generado por LLM que no haya sido validado por evidencia o intervención humana cuando corresponda.
 * Sanitizar, excluir o transformar información sensible antes de incorporarla a un dataset de entrenamiento.
 * Mantener trazabilidad entre cada ejemplo de entrenamiento y el ticket del cual se originó.
 * Preservar las reglas de autorización y privacidad durante la preparación de datos de entrenamiento.
 
 ### 26. Pipeline periódico de mejora del modelo
 
-Genius-x necesita permitir la mejora periódica de Balbuena sin reemplazar automáticamente el modelo productivo.
+Genius-x necesita permitir la mejora periódica del LLM sin reemplazar automáticamente el modelo productivo.
 
 El sistema debe:
 
@@ -379,13 +379,13 @@ El sistema debe:
 * Ejecutar un proceso de fine-tuning o mejora del modelo con una periodicidad configurable.
 * Utilizar como decisión inicial un job semanal, sujeto a validación durante la operación.
 * Permitir omitir una ejecución cuando no exista una cantidad o calidad suficiente de nuevos ejemplos válidos.
-* Generar una nueva versión candidata de Balbuena sin sustituir inmediatamente a la versión en producción.
+* Generar una nueva versión candidata del LLM sin sustituir inmediatamente a la versión en producción.
 * Mantener disponible la versión productiva mientras la candidata es evaluada.
 * Registrar dataset, configuración, fecha y resultado de cada ejecución de entrenamiento.
 
 ### 27. Benchmark de nuevas versiones
 
-Toda versión candidata de Balbuena necesita demostrar que mantiene o mejora el comportamiento esperado antes de llegar a producción.
+Toda versión candidata del LLM necesita demostrar que mantiene o mejora el comportamiento esperado antes de llegar a producción.
 
 El benchmark debe evaluar como mínimo:
 
@@ -415,12 +415,12 @@ El sistema debe:
 
 ### 29. Versionado y ciclo de vida del modelo
 
-Balbuena necesita operar como un modelo versionado y trazable.
+LLM necesita operar como un modelo versionado y trazable.
 
 Genius-x debe:
 
 * Asignar un identificador de versión a cada modelo candidato y productivo.
-* Registrar qué versión de Balbuena atendió cada sesión.
+* Registrar qué versión del LLM atendió cada sesión.
 * Mantener relación entre versión, dataset de entrenamiento, configuración y resultados de benchmark.
 * Permitir mantener una versión productiva mientras se evalúan candidatas.
 * Promover únicamente versiones que cumplan los criterios de aceptación definidos.
@@ -443,9 +443,9 @@ Antes de promoción debe:
 
 ### 31. Separación entre conocimiento aprendido y fuente de verdad
 
-El entrenamiento de Balbuena debe mejorar su forma de investigar y razonar, pero no convertir conocimiento dinámico en una fuente permanente de verdad.
+El entrenamiento del LLM debe mejorar su forma de investigar y razonar, pero no convertir conocimiento dinámico en una fuente permanente de verdad.
 
-Balbuena puede aprender patrones estables como:
+LLM puede aprender patrones estables como:
 
 * Estrategias de investigación.
 * Selección apropiada de tools.
@@ -461,6 +461,7 @@ Sin embargo:
 * El estado actual de producción, responsables, configuraciones y datos de clientes no deben asumirse correctos únicamente porque aparecieron en información utilizada para entrenar una versión anterior.
 * Cuando exista conflicto entre conocimiento aprendido y una fuente de verdad disponible, debe prevalecer la fuente de verdad.
 
-En consecuencia, el **fine-tuning enseña a Balbuena cómo trabajar**, mientras que las **tools proporcionan la realidad actual**.
+En consecuencia, el **fine-tuning enseña a LLM cómo trabajar**, mientras que las **tools proporcionan la realidad actual**.
+
 
 

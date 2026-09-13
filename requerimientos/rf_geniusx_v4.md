@@ -4,25 +4,25 @@
 >
 > Este documento describe **qué debe hacer el servicio**. Las decisiones concretas de tecnología, productos, frameworks, colas, bases de datos, gateways o mecanismos específicos se reservan para **L — Listar componentes** y **E — Escalamiento**.
 >
-> Los nombres **Mauro Bobadilla**, **Juanma Torres**, **Anderson Carcamo** y **Balbuena** se utilizan para personificar los actores del caso. En producción representan roles o tipos de usuario, no necesariamente una única persona.
+> Los términos **Support**, **Ingeniero**, **Customer** y **LLM local** representan los actores o roles del caso. En producción corresponden a roles o tipos de usuario, no necesariamente a una única persona.
 >
 > Los límites de **5 sesiones concurrentes**, **100k tokens de contexto**, **1 minuto de inactividad** y **30 minutos por sesión** corresponden a decisiones de diseño adoptadas para el LLM local.
 
 ## Actores
 
-- **Mauro Bobadilla — Support:** primera línea de atención al cliente. Utiliza Genius-x para comprender tickets, consultar conocimiento, proponer planes de acción y redirigir incidentes cuando sea necesario.
-- **Juanma Torres — Ingeniero:** investiga y resuelve incidentes técnicos, recibe escalaciones, crea Engineering Escalations y utiliza Genius-x para consultar repositorios, documentación y datos autorizados.
-- **Anderson Carcamo — Customer:** reporta y consulta tickets mediante la ticketera. No utiliza Genius-x directamente.
-- **Balbuena — LLM local:** actor técnico de Genius-x que consulta fuentes autorizadas, mantiene contexto temporal por sesión, utiliza tools y genera trails asociados a los tickets.
+- **Support — Support:** primera línea de atención al cliente. Utiliza Genius-x para comprender tickets, consultar conocimiento, proponer planes de acción y redirigir incidentes cuando sea necesario.
+- **Ingeniero — Ingeniero:** investiga y resuelve incidentes técnicos, recibe escalaciones, crea Engineering Escalations y utiliza Genius-x para consultar repositorios, documentación y datos autorizados.
+- **Customer — Customer:** reporta y consulta tickets mediante la ticketera. No utiliza Genius-x directamente.
+- **LLM local — LLM local:** actor técnico de Genius-x que consulta fuentes autorizadas, mantiene contexto temporal por sesión, utiliza tools y genera trails asociados a los tickets.
 - **Sistema de manejo de incidentes / Ticketera:** fuente de verdad de los tickets, estados, responsables y ciclo de vida de los incidentes.
 
 ---
 
 1. **RF-001 — Inicio de sesión de Genius-x asociada a un ticket**  
-   **Usuarios:** Mauro Bobadilla / Juanma Torres
+   **Usuarios:** Support / Ingeniero
 
    El sistema deberá:
-   * Permitir solicitar una sesión con Balbuena asociada a un ticket existente.
+   * Permitir solicitar una sesión con LLM local asociada a un ticket existente.
    * Identificar al usuario que inicia la sesión.
    * Asociar la sesión al rol y permisos efectivos del usuario.
    * Cargar la información básica del ticket antes de iniciar la asistencia.
@@ -30,8 +30,8 @@
    * Informar al usuario cuando la sesión haya sido creada correctamente.
 
 2. **RF-002 — Consulta de información actual del ticket**  
-   **Usuarios:** Mauro Bobadilla / Juanma Torres  
-   **Actor técnico:** Balbuena
+   **Usuarios:** Support / Ingeniero  
+   **Actor técnico:** LLM local
 
    El sistema deberá:
    * Consultar la ticketera como fuente de verdad del ticket.
@@ -41,46 +41,46 @@
    * Informar cuando la ticketera no pueda ser consultada.
 
 3. **RF-003 — Consulta del historial del ticket**  
-   **Usuarios:** Mauro Bobadilla / Juanma Torres
+   **Usuarios:** Support / Ingeniero
 
    El sistema deberá:
    * Permitir consultar interacciones previas relacionadas con el ticket.
    * Mostrar únicamente las interacciones e información histórica autorizadas para el rol y permisos efectivos del usuario.
    * Permitir consultar respuestas anteriores de Support o Ingeniería cuando el usuario tenga permisos para acceder a ellas.
    * Permitir conocer cambios de estado y redirecciones autorizados.
-   * Impedir que información histórica restringida sea incorporada al contexto de Balbuena para un usuario sin permisos.
-   * Permitir a Balbuena utilizar únicamente el historial autorizado como contexto de apoyo.
+   * Impedir que información histórica restringida sea incorporada al contexto de LLM local para un usuario sin permisos.
+   * Permitir a LLM local utilizar únicamente el historial autorizado como contexto de apoyo.
 
 4. **RF-004 — Asistencia a Support para consultas simples**  
-   **Usuario:** Mauro Bobadilla
+   **Usuario:** Support
 
    El sistema deberá:
-   * Permitir a Mauro solicitar a Balbuena un análisis del problema reportado.
+   * Permitir a Support solicitar a LLM local un análisis del problema reportado.
    * Permitir consultar documentación de producto autorizada.
    * Permitir consultar procedimientos de soporte.
    * Permitir consultar información de repositorios autorizados en modo lectura cuando sea necesario.
-   * Permitir a Balbuena proponer posibles causas.
-   * Permitir a Balbuena generar un plan de acción sugerido.
-   * Permitir a Balbuena generar una propuesta de respuesta para el cliente.
-   * Mantener la decisión final de respuesta en Mauro Bobadilla.
+   * Permitir a LLM local proponer posibles causas.
+   * Permitir a LLM local generar un plan de acción sugerido.
+   * Permitir a LLM local generar una propuesta de respuesta para el cliente.
+   * Mantener la decisión final de respuesta en Support.
 
 5. **RF-005 — Filtro inicial asistido de tickets**  
-   **Usuario beneficiado:** Mauro Bobadilla  
-   **Customer relacionado:** Anderson Carcamo
+   **Usuario beneficiado:** Support  
+   **Customer relacionado:** Customer
 
    El sistema deberá:
    * Permitir analizar la descripción inicial de un ticket antes de una exploración extensa por Support.
    * Identificar consultas simples o problemas de uso potencialmente resolubles mediante documentación existente.
    * Proponer a Support una respuesta o plan de acción inicial.
    * Identificar tickets que requieran exploración humana adicional.
-   * Mantener a Mauro Bobadilla como responsable de la interacción con Anderson Carcamo.
-   * No permitir que Balbuena se convierta en el canal directo de atención del Customer.
+   * Mantener a Support como responsable de la interacción con Customer.
+   * No permitir que LLM local se convierta en el canal directo de atención del Customer.
 
 6. **RF-006 — Identificación de una posible falla de producto**  
-   **Usuarios:** Mauro Bobadilla / Juanma Torres
+   **Usuarios:** Support / Ingeniero
 
    El sistema deberá:
-   * Permitir a Balbuena analizar la información del ticket.
+   * Permitir a LLM local analizar la información del ticket.
    * Consultar documentación y antecedentes autorizados.
    * Identificar producto, servicio, módulo o componente potencialmente relacionado.
    * Diferenciar, cuando sea posible, una consulta de desconocimiento de una posible falla real del producto.
@@ -88,20 +88,20 @@
    * Permitir revisión humana de la clasificación.
 
 7. **RF-007 — Redirección de incidentes al área correspondiente**  
-   **Usuario:** Mauro Bobadilla  
-   **Actor técnico:** Balbuena
+   **Usuario:** Support  
+   **Actor técnico:** LLM local
 
    El sistema deberá:
-   * Permitir a Balbuena sugerir el área técnica responsable.
+   * Permitir a LLM local sugerir el área técnica responsable.
    * Permitir consultar información autorizada de Slack para identificar equipos o canales relevantes.
-   * Permitir a Mauro confirmar la redirección.
+   * Permitir a Support confirmar la redirección.
    * Registrar el área destino.
    * Registrar el motivo de la redirección.
    * Mantener el contexto y trail del ticket para el equipo receptor.
 
 8. **RF-008 — Gestión de Support Escalations**  
-   **Usuario:** Mauro Bobadilla  
-   **Customer relacionado:** Anderson Carcamo
+   **Usuario:** Support  
+   **Customer relacionado:** Customer
 
    El sistema deberá:
    * Permitir identificar que Support ya entregó una respuesta o plan de acción.
@@ -113,7 +113,7 @@
    * Evitar que el usuario deba reconstruir manualmente toda la investigación previa.
 
 9. **RF-009 — Recepción de tickets técnicos por Ingeniería**  
-   **Usuario:** Juanma Torres
+   **Usuario:** Ingeniero
 
    El sistema deberá:
    * Permitir consultar Customer Escalations asignados.
@@ -122,10 +122,10 @@
    * Mostrar el contexto relevante del ticket.
    * Mostrar el trail disponible.
    * Mostrar las acciones realizadas previamente por Support.
-   * Permitir iniciar una nueva sesión con Balbuena para continuar la investigación.
+   * Permitir iniciar una nueva sesión con LLM local para continuar la investigación.
 
-10. **RF-010 — Investigación técnica asistida por Balbuena**  
-    **Usuario:** Juanma Torres
+10. **RF-010 — Investigación técnica asistida por LLM local**  
+    **Usuario:** Ingeniero
 
     El sistema deberá:
     * Permitir solicitar análisis técnico del incidente.
@@ -135,34 +135,34 @@
     * Permitir consultar información relevante en Slack según permisos.
     * Permitir solicitar posibles causas y componentes relacionados.
     * Permitir solicitar antecedentes de incidentes similares.
-    * Mantener a Juanma Torres como responsable de la decisión técnica final.
+    * Mantener a Ingeniero como responsable de la decisión técnica final.
 
 11. **RF-011 — Consulta de repositorios de código**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres, según permisos  
-    **Actor técnico:** Balbuena
+    **Usuarios:** Support / Ingeniero, según permisos  
+    **Actor técnico:** LLM local
 
     El sistema deberá:
     * Permitir acceso únicamente a repositorios autorizados.
     * Permitir búsqueda de archivos, módulos, funciones y referencias.
     * Permitir lectura de código.
     * Permitir relacionar componentes del repositorio con el comportamiento reportado.
-    * Impedir modificaciones directas al repositorio desde Balbuena.
+    * Impedir modificaciones directas al repositorio desde LLM local.
     * Respetar los permisos efectivos del usuario que inició la sesión.
 
 12. **RF-012 — Consulta de documentación**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres
+    **Usuarios:** Support / Ingeniero
 
     El sistema deberá:
     * Permitir buscar documentación de productos y proyectos autorizados.
     * Respetar los permisos efectivos del usuario al consultar documentación.
-    * Impedir que Balbuena incorpore al contexto documentos que el usuario no esté autorizado a consultar.
+    * Impedir que LLM local incorpore al contexto documentos que el usuario no esté autorizado a consultar.
     * Permitir recuperar procedimientos y referencias técnicas.
     * Permitir utilizar documentos relevantes como contexto de la sesión.
     * Registrar las fuentes consultadas cuando sean utilizadas para una recomendación o diagnóstico.
 
 13. **RF-013 — Consulta de base de datos**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres, según permisos  
-    **Actor técnico:** Balbuena
+    **Usuarios:** Support / Ingeniero, según permisos  
+    **Actor técnico:** LLM local
 
     El sistema deberá:
     * Permitir consultas de lectura autorizadas.
@@ -170,11 +170,11 @@
     * Limitar los datos retornados según rol y permisos.
     * Registrar consultas relevantes asociadas al ticket.
     * Informar cuando una consulta no pueda ejecutarse.
-    * Impedir que Balbuena exponga datos no autorizados.
+    * Impedir que LLM local exponga datos no autorizados.
 
 14. **RF-014 — Consulta de Slack**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres, según permisos  
-    **Actor técnico:** Balbuena
+    **Usuarios:** Support / Ingeniero, según permisos  
+    **Actor técnico:** LLM local
 
     El sistema deberá:
     * Permitir consultar canales y conversaciones autorizadas.
@@ -185,19 +185,19 @@
     * Registrar las consultas relevantes utilizadas durante la investigación.
 
 15. **RF-015 — Creación de Engineering Escalations**  
-    **Usuario:** Juanma Torres
+    **Usuario:** Ingeniero
 
     El sistema deberá:
     * Permitir crear un Engineering Escalation directamente mediante la ticketera.
-    * Permitir solicitar a Balbuena apoyo para preparar un Engineering Escalation.
-    * Permitir a Balbuena generar una propuesta de descripción técnica.
+    * Permitir solicitar a LLM local apoyo para preparar un Engineering Escalation.
+    * Permitir a LLM local generar una propuesta de descripción técnica.
     * Permitir asociar evidencia, producto, servicio o componente afectado.
     * Permitir adjuntar referencias de documentación o repositorio.
-    * Requerir confirmación humana antes de crear el ticket cuando la creación sea solicitada mediante Balbuena.
+    * Requerir confirmación humana antes de crear el ticket cuando la creación sea solicitada mediante LLM local.
     * Registrar quién solicitó y quién confirmó la creación.
 
 16. **RF-016 — Resolución y cierre de tickets**  
-    **Usuario:** Juanma Torres
+    **Usuario:** Ingeniero
 
     El sistema deberá:
     * Permitir documentar la causa encontrada.
@@ -211,21 +211,21 @@
     * Permitir identificar si la solución aplicada quedó confirmada, fue un workaround temporal o resultó fallida.
     * Permitir asociar evidencia de resolución cuando exista.
     * Mantener identificadas las queries y acciones realmente ejecutadas y su resultado.
-    * Permitir marcar una resolución verificada como candidata para procesos posteriores de aprendizaje de Balbuena.
+    * Permitir marcar una resolución verificada como candidata para procesos posteriores de aprendizaje de LLM local.
 
 17. **RF-017 — Autorización basada en roles para Ingenieros**  
-    **Usuarios:** Juanma Torres / Ingenieros
+    **Usuarios:** Ingeniero / Ingenieros
 
     El sistema deberá:
     * Asociar a cada ingeniero un rol efectivo.
     * Diferenciar al menos permisos de consulta, modificación y aprobación.
     * Aplicar permisos por fuente y por operación.
     * Impedir operaciones que excedan los permisos del usuario.
-    * Evitar que Balbuena tenga permisos efectivos superiores a los del usuario solicitante.
+    * Evitar que LLM local tenga permisos efectivos superiores a los del usuario solicitante.
     * Permitir que distintos ingenieros tengan acceso diferente a proyectos, repositorios, documentación o datos privilegiados.
 
 18. **RF-018 — Perfil de Ingeniero de consulta**  
-    **Usuario:** Ingeniero con rol de consulta, personificado por Juanma Torres cuando corresponda
+    **Usuario:** Ingeniero con rol de consulta, personificado por Ingeniero cuando corresponda
 
     El sistema deberá:
     * Permitir consultar tickets autorizados.
@@ -256,7 +256,7 @@
     * Impedir que usuarios sin este rol aprueben operaciones críticas.
 
 21. **RF-021 — Detección de operaciones críticas o destructivas**  
-    **Actor técnico:** Balbuena / Genius-x
+    **Actor técnico:** LLM local / Genius-x
 
     El sistema deberá:
     * Detectar solicitudes que modifiquen o eliminen información.
@@ -294,8 +294,8 @@
     * Motivo de fallo o rechazo cuando aplique.
 
 24. **RF-024 — Generación de trail al finalizar una sesión**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres  
-    **Actor técnico:** Balbuena
+    **Usuarios:** Support / Ingeniero  
+    **Actor técnico:** LLM local
 
     El sistema deberá:
     * Generar un documento de trail al finalizar una sesión.
@@ -315,7 +315,7 @@
     * Registrar el resultado de la sesión.
 
 25. **RF-025 — Recuperación de trail en una nueva sesión**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres
+    **Usuarios:** Support / Ingeniero
 
     El sistema deberá:
     * Permitir iniciar una sesión nueva para un ticket previamente trabajado.
@@ -326,26 +326,26 @@
     * Verificar nuevamente datos dinámicos en la ticketera.
 
 26. **RF-026 — Cierre manual de sesión**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres
+    **Usuarios:** Support / Ingeniero
 
     El sistema deberá:
     * Permitir al usuario finalizar explícitamente una sesión.
     * Generar el trail correspondiente.
-    * Liberar la capacidad utilizada por Balbuena.
+    * Liberar la capacidad utilizada por LLM local.
     * Registrar el motivo de finalización como cierre voluntario.
 
 27. **RF-027 — Cierre automático por inactividad**  
-    **Usuarios afectados:** Mauro Bobadilla / Juanma Torres
+    **Usuarios afectados:** Support / Ingeniero
 
     El sistema deberá:
     * Detectar inactividad en una sesión.
     * Cerrar la sesión al superar el tiempo permitido de inactividad.
-    * Generar el trail correspondiente antes de liberar la sesión cuando la sesión haya registrado al menos una interacción del usuario o una acción de Balbuena.
+    * Generar el trail correspondiente antes de liberar la sesión cuando la sesión haya registrado al menos una interacción del usuario o una acción de LLM local.
     * Liberar la capacidad utilizada.
     * Informar al usuario que la sesión finalizó por inactividad.
 
 28. **RF-028 — Cierre automático por duración máxima**  
-    **Usuarios afectados:** Mauro Bobadilla / Juanma Torres
+    **Usuarios afectados:** Support / Ingeniero
 
     El sistema deberá:
     * Medir la duración de cada sesión.
@@ -354,18 +354,18 @@
     * Liberar la capacidad utilizada.
     * Permitir iniciar posteriormente una nueva sesión recuperando el trail.
 
-29. **RF-029 — Control de capacidad de sesiones de Balbuena**  
-    **Usuarios afectados:** Mauro Bobadilla / Juanma Torres
+29. **RF-029 — Control de capacidad de sesiones de LLM local**  
+    **Usuarios afectados:** Support / Ingeniero
 
     El sistema deberá:
     * Verificar la capacidad disponible antes de abrir una sesión.
     * Permitir como máximo el número configurado de sesiones concurrentes.
     * Impedir iniciar una sesión adicional cuando se alcance el límite.
-    * Informar al usuario que Balbuena no está disponible en ese momento.
+    * Informar al usuario que LLM local no está disponible en ese momento.
     * Ofrecer al usuario la opción de ingresar a una cola de espera.
 
 30. **RF-030 — Ingreso voluntario a cola de espera**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres
+    **Usuarios:** Support / Ingeniero
 
     Cuando no exista capacidad disponible, el sistema deberá:
     * Informar al usuario que puede entrar a una cola.
@@ -376,7 +376,7 @@
     * Permitir abandonar la cola antes de recibir un turno.
 
 31. **RF-031 — Priorización de solicitudes en cola**  
-    **Usuarios beneficiados:** Mauro Bobadilla / Juanma Torres
+    **Usuarios beneficiados:** Support / Ingeniero
 
     El sistema deberá:
     * Priorizar solicitudes considerando severidad.
@@ -388,7 +388,7 @@
     * Evitar que solicitudes de baja prioridad queden indefinidamente sin atención.
 
 32. **RF-032 — Notificación de disponibilidad por Slack**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres
+    **Usuarios:** Support / Ingeniero
 
     Cuando llegue el turno de una solicitud en cola, el sistema deberá:
     * Notificar al usuario mediante Slack.
@@ -398,7 +398,7 @@
     * Evitar notificar a usuarios diferentes del solicitante.
 
 33. **RF-033 — Expiración del turno de cola**  
-    **Usuarios afectados:** Mauro Bobadilla / Juanma Torres
+    **Usuarios afectados:** Support / Ingeniero
 
     El sistema deberá:
     * Iniciar una ventana de aceptación cuando se notifique disponibilidad.
@@ -408,16 +408,16 @@
     * Permitir al usuario volver a solicitar una posición en cola posteriormente.
 
 34. **RF-034 — Respuesta controlada ante falta de capacidad**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres
+    **Usuarios:** Support / Ingeniero
 
     El sistema deberá:
-    * No sobreasignar sesiones a Balbuena.
+    * No sobreasignar sesiones a LLM local.
     * Informar claramente cuando no haya recursos disponibles.
     * Permitir continuar utilizando la ticketera independientemente de la indisponibilidad temporal del LLM.
-    * Evitar presentar una sesión como iniciada cuando Balbuena no tenga capacidad.
+    * Evitar presentar una sesión como iniciada cuando LLM local no tenga capacidad.
 
 35. **RF-035 — Manejo de fallo de una tool**  
-    **Actor técnico:** Balbuena
+    **Actor técnico:** LLM local
 
     Cuando una tool no esté disponible, el sistema deberá:
     * Detectar que la consulta o acción falló.
@@ -428,7 +428,7 @@
     * Registrar el fallo en el trail.
 
 36. **RF-036 — Protección contra acceso a información privilegiada**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres
+    **Usuarios:** Support / Ingeniero
 
     El sistema deberá:
     * Validar permisos antes de consultar información.
@@ -439,25 +439,25 @@
     * Registrar intentos de acceso rechazados cuando sean relevantes.
 
 37. **RF-037 — Reporte, seguimiento y escalamiento de tickets por Customer**  
-    **Usuario:** Anderson Carcamo  
+    **Usuario:** Customer  
     **Sistema principal:** Ticketera
 
     El sistema de manejo de incidentes deberá:
-    * Permitir a Anderson Carcamo crear un ticket.
+    * Permitir a Customer crear un ticket.
     * Permitir describir el problema, identificar el producto o servicio afectado y adjuntar evidencia.
-    * Entregar a Anderson un identificador del ticket después de su creación.
+    * Entregar al Customer un identificador del ticket después de su creación.
     * Permitir registrar el impacto del problema.
     * Permitir consultar el estado actual del ticket.
     * Permitir consultar la fecha de creación, última actualización, área responsable, respuestas entregadas, escalaciones realizadas, resolución y fecha de cierre cuando corresponda.
     * Permitir agregar nueva información o evidencia al ticket existente.
     * Permitir responder indicando que una solución previa no resolvió el problema.
-    * Permitir que un incidente reportado por Anderson sea clasificado como **Customer Escalation** cuando corresponda por su impacto y reglas de clasificación.
-    * Mantener la relación entre el Customer Escalation y el ticket original de Anderson.
+    * Permitir que un incidente reportado por el Customer sea clasificado como **Customer Escalation** cuando corresponda por su impacto y reglas de clasificación.
+    * Mantener la relación entre el Customer Escalation y el ticket original del Customer.
     * Permitir que un caso previamente atendido por Support pueda posteriormente ser clasificado como **Support Escalation** si el problema persiste.
-    * Mantener a Anderson sin acceso directo a Balbuena, repositorios, base de datos interna, Slack interno, trails técnicos o demás tools internas de Genius-x.
+    * Mantener al Customer sin acceso directo a LLM local, repositorios, base de datos interna, Slack interno, trails técnicos o demás tools internas de Genius-x.
 
 38. **RF-038 — Trazabilidad de acciones de Genius-x por ticket**  
-    **Usuarios beneficiados:** Mauro Bobadilla / Juanma Torres
+    **Usuarios beneficiados:** Support / Ingeniero
 
     El sistema deberá permitir reconstruir:
     * Qué usuario inició cada sesión.
@@ -471,23 +471,23 @@
     * Cómo y cuándo finalizó la sesión.
 
 39. **RF-039 — Conservación del control humano**  
-    **Usuarios:** Mauro Bobadilla / Juanma Torres
+    **Usuarios:** Support / Ingeniero
 
     El sistema deberá:
-    * Presentar las respuestas de Balbuena como apoyo a la decisión.
+    * Presentar las respuestas de LLM local como apoyo a la decisión.
     * Mantener la responsabilidad de atención en Support o Ingeniería.
     * Requerir confirmación humana para acciones que cambien el estado del incidente cuando así lo exijan los permisos.
-    * No permitir que Balbuena cierre automáticamente un ticket sin autorización.
+    * No permitir que LLM local cierre automáticamente un ticket sin autorización.
 
 40. **RF-040 — Registro de consumo de sesión**  
-    **Usuarios beneficiados:** Mauro Bobadilla / Juanma Torres / responsables operativos
+    **Usuarios beneficiados:** Support / Ingeniero / responsables operativos
 
     El sistema deberá registrar:
     * Usuario.
     * Rol efectivo del usuario.
     * Ticket.
     * Inicio y fin de sesión.
-    * Versión de Balbuena utilizada.
+    * Versión de LLM local utilizada.
     * Tokens de contexto utilizados.
     * Motivo de cierre.
     * Cantidad de tools utilizadas.
@@ -495,21 +495,21 @@
     * Estado final de la sesión.
 
 
-41. **RF-041 — Operación de Balbuena dentro del agent harness**  
-    **Usuarios beneficiados:** Mauro Bobadilla / Juanma Torres  
-    **Actor técnico:** Balbuena
+41. **RF-041 — Operación de LLM local dentro del agent harness**  
+    **Usuarios beneficiados:** Support / Ingeniero  
+    **Actor técnico:** LLM local
 
     El sistema deberá:
-    * Preparar y entregar a Balbuena únicamente contexto autorizado para el usuario, ticket y sesión activos.
+    * Preparar y entregar a LLM local únicamente contexto autorizado para el usuario, ticket y sesión activos.
     * Canalizar el acceso a ticketera, base de datos, Slack, repositorios y documentación mediante controles del harness.
-    * Impedir que Balbuena invoque dependencias evitando autorización, filtrado, auditoría o controles de reliability.
+    * Impedir que LLM local invoque dependencias evitando autorización, filtrado, auditoría o controles de reliability.
     * Permitir que el Orchestrator controle el ciclo de análisis, selección de tools, recepción de resultados y generación de respuesta.
     * Interrumpir o pausar el flujo cuando una operación requiera autorización humana.
     * Aplicar límites configurados de sesión, contexto, duración, tools y pasos de orquestación.
-    * Mantener separadas las responsabilidades: Balbuena propone y razona; Genius-x valida, autoriza, ejecuta y registra.
+    * Mantener separadas las responsabilidades: LLM local propone y razona; Genius-x valida, autoriza, ejecuta y registra.
 
 42. **RF-042 — Registro de resolución verificada para aprendizaje**  
-    **Usuario:** Juanma Torres
+    **Usuario:** Ingeniero
 
     El sistema deberá:
     * Permitir registrar una causa raíz verificada cuando haya sido identificada.
@@ -521,7 +521,7 @@
 
 43. **RF-043 — Construcción de ejemplos de entrenamiento**  
     **Usuarios beneficiados:** responsables operativos / Ingeniería  
-    **Actor técnico:** Balbuena
+    **Actor técnico:** LLM local
 
     El sistema deberá:
     * Identificar tickets cerrados con causa raíz y resolución suficientemente documentadas.
@@ -544,13 +544,13 @@
     **Usuarios beneficiados:** responsables operativos / Ingeniería
 
     El sistema deberá:
-    * Permitir ejecutar un proceso periódico de fine-tuning o mejora de Balbuena utilizando datasets previamente curados.
+    * Permitir ejecutar un proceso periódico de fine-tuning o mejora de LLM local utilizando datasets previamente curados.
     * Permitir configurar la periodicidad del proceso.
     * Utilizar inicialmente un job semanal como decisión del equipo.
     * Permitir omitir una ejecución cuando no exista cantidad o calidad suficiente de nuevos ejemplos válidos.
     * Registrar dataset, configuración, fecha y resultado de cada ejecución.
 
-46. **RF-046 — Generación de versión candidata de Balbuena**  
+46. **RF-046 — Generación de versión candidata de LLM local**  
     **Usuarios beneficiados:** responsables operativos / Ingeniería
 
     El sistema deberá:
@@ -586,11 +586,11 @@
     * Incluir casos de fallo de tools, permisos insuficientes, estado desactualizado y acciones destructivas.
     * Permitir incorporar nuevos casos de evaluación cuando se descubran fallos relevantes.
 
-49. **RF-049 — Versionado, promoción y rollback de Balbuena**  
+49. **RF-049 — Versionado, promoción y rollback de LLM local**  
     **Usuarios beneficiados:** responsables operativos / Ingeniería
 
     El sistema deberá:
-    * Registrar qué versión de Balbuena atendió cada sesión.
+    * Registrar qué versión de LLM local atendió cada sesión.
     * Mantener relación entre versión, dataset, configuración y resultados de benchmark.
     * Permitir promover una versión candidata cuando cumpla los criterios definidos.
     * Registrar versiones rechazadas y su motivo de rechazo.
@@ -606,3 +606,4 @@
     * Mantener la respuesta productiva bajo control de la versión vigente durante una evaluación shadow.
     * Permitir comparar calidad, seguridad, eficiencia y performance entre la candidata y la versión productiva.
     * Permitir detener la validación y conservar o restaurar la versión productiva ante una regresión.
+

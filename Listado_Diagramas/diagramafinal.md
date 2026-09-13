@@ -13,11 +13,13 @@ flowchart LR
 %% -----------------------------
 subgraph SHARED["ACTORES, DEPENDENCIAS Y RECURSOS COMPARTIDOS"]
 direction TB
+  EXT_CUSTOMER["CUSTOMER"]
   EXT_SUPPORT["SUPPORT"]
   EXT_ENGINEER["INGENIERO"]
   INFRA_LB["LOAD BALANCER"]
   EXT_IDP["IDENTITY PROVIDER"]
   EXT_TICKET[("TICKETERA - SOURCE OF TRUTH<br/><<spof>>")]
+  EXT_CUSTOMER -->|"Reporta y consulta tickets"| EXT_TICKET
   EXT_DB[("DATABASE")]
   EXT_SLACK[("SLACK")]
   EXT_REPO[("CODE REPOSITORY")]
@@ -27,6 +29,38 @@ direction TB
   EXT_ALERT["ALERT MANAGER"]
   STORE_MODEL_ARTIFACT[("MODEL ARTIFACT STORE - Model artifacts - Candidate models - Checkpoints - Training outputs")]
 end
+
+
+%% ============================================================
+%% SPEC / CAPACIDADES FUNCIONALES EXPLICITAS
+%% Estas cajas resumen capacidades ya implementadas por los servicios.
+%% Se agregan para hacer trazables los requisitos del caso en el diagrama.
+%% ============================================================
+
+subgraph SG_SPEC["SPEC - CAPACIDADES PRINCIPALES DEL CASO"]
+direction TB
+
+  SPEC_R1["R1 - CUSTOMER REPORTA Y CONSULTA TICKETS<br/>mediante la TICKETERA"]
+  SPEC_R2["R2 - SUPPORT USA EL LLM<br/>para analizar tickets, proponer plan de accion<br/>y redirigir incidentes"]
+  SPEC_R3["R3 - INGENIERO INVESTIGA INCIDENTES<br/>con LLM, documentacion, repositorio,<br/>base de datos y Slack autorizados"]
+  SPEC_R4["R4 - ACCESO CONTROLADO A TOOLS<br/>segun identidad, rol y permisos efectivos<br/>LLM no amplía privilegios"]
+  SPEC_R5["R5 - CAPACIDAD LIMITADA DEL LLM<br/>maximo 5 sesiones; sin capacidad -> cola priorizada<br/>y notificacion por Slack"]
+  SPEC_R6["R6 - ACCIONES CRITICAS / DESTRUCTIVAS<br/>requieren aprobacion humana valida<br/>y generan auditoria / trazabilidad"]
+
+end
+
+EXT_CUSTOMER -. "cumple" .-> SPEC_R1
+EXT_SUPPORT -. "cumple" .-> SPEC_R2
+EXT_ENGINEER -. "cumple" .-> SPEC_R3
+SVC_AUTH -. "implementa" .-> SPEC_R4
+SVC_TOOLS -. "implementa" .-> SPEC_R4
+SVC_SESSION -. "implementa" .-> SPEC_R5
+SVC_QUEUE -. "implementa" .-> SPEC_R5
+SVC_NOTIF -. "implementa" .-> SPEC_R5
+SVC_APP -. "implementa" .-> SPEC_R6
+SVC_AUDIT -. "implementa" .-> SPEC_R6
+SVC_TRAIL -. "implementa" .-> SPEC_R6
+
 
 %% ============================================================
 %% RUNTIME / AGENT HARNESS

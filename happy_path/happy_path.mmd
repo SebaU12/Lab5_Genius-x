@@ -1,0 +1,91 @@
+sequenceDiagram
+    autonumber
+
+    actor CUSTOMER as CUSTOMER
+    participant TICKET as TICKETERA
+    actor SUPPORT as SUPPORT
+    participant API as API GATEWAY
+    participant AUTH as IDENTITY & AUTHORIZATION
+    participant IDP as IDENTITY PROVIDER
+    participant SESSION as SESSION SERVICE
+    participant INCIDENT as INCIDENT SERVICE
+    participant ORCH as LLM ORCHESTRATOR
+    participant TRAIL as TRAIL SERVICE
+    participant LLM as LLM LOCAL
+    participant TOOLS as TOOL ACCESS SERVICE
+    participant DOCS as DOCUMENTATION
+    participant AUDIT as AUDIT SERVICE
+
+    %% 1. Customer reporta el incidente
+    CUSTOMER->>TICKET: Crear ticket con problema y evidencia
+    TICKET-->>CUSTOMER: Ticket creado INC-12345
+
+    %% 2. Support inicia una sesión en Genius-x
+    SUPPORT->>API: POST /sessions {ticket_id: INC-12345}
+    API->>AUTH: Validar identidad y autorización
+    AUTH->>IDP: Obtener / validar identidad
+    IDP-->>AUTH: Identidad válida
+    AUTH-->>API: Usuario autorizado
+
+    %% 3. Validación del ticket y creación de sesión
+    API->>SESSION: Solicitar creación de sesión
+    SESSION->>INCIDENT: Validar ticket INC-12345
+    INCIDENT->>TICKET: Consultar estado actual
+    TICKET-->>INCIDENT: Ticket válido + estado actual
+    INCIDENT-->>SESSION: Ticket autorizado
+
+    SESSION->>SESSION: Reservar slot disponible
+    SESSION->>SESSION: Crear sesión y temporizadores
+    SESSION->>ORCH: Iniciar sesión SES-001
+    ORCH-->>SESSION: Sesión iniciada
+    SESSION-->>API: 201 CREATED
+    API-->>SUPPORT: Sesión SES-001 disponible
+
+    %% 4. Support solicita análisis
+    SUPPORT->>API: Solicitar análisis del incidente
+    API->>ORCH: POST /orchestrator/query
+
+    %% 5. El Orchestrator construye contexto autorizado
+    ORCH->>TRAIL: Recuperar contexto histórico autorizado
+    TRAIL-->>ORCH: Trail previo o sin antecedentes
+
+    ORCH->>INCIDENT: Obtener información actual del ticket
+    INCIDENT->>TICKET: Consultar source of truth
+    TICKET-->>INCIDENT: Estado, prioridad, responsable e historial
+    INCIDENT-->>ORCH: Información actual verificada
+
+    %% 6. El LLM analiza y solicita una tool
+    ORCH->>LLM: Analizar contexto autorizado
+    LLM-->>ORCH: Solicitar consulta de documentación
+
+    ORCH->>TOOLS: Ejecutar tool de documentación
+    TOOLS->>AUTH: Validar permisos efectivos
+    AUTH-->>TOOLS: Permitido
+    TOOLS->>DOCS: Buscar antecedentes / procedimiento
+    DOCS-->>TOOLS: Información encontrada
+    TOOLS-->>ORCH: Resultado verificado
+
+    %% 7. Se genera la respuesta final
+    ORCH->>LLM: Reevaluar con resultado de tool
+    LLM-->>ORCH: Posible causa + plan de acción
+    ORCH->>ORCH: Verificar fuentes y resultados
+    ORCH-->>API: 200 OK + respuesta asistida
+    API-->>SUPPORT: Análisis + plan de acción sugerido
+
+    %% 8. Support mantiene el control humano
+    SUPPORT->>INCIDENT: Registrar respuesta / actualizar ticket
+    INCIDENT->>AUTH: Validar permiso de actualización
+    AUTH-->>INCIDENT: Permitido
+    INCIDENT->>TICKET: Actualizar ticket
+    TICKET-->>INCIDENT: Actualización exitosa
+    INCIDENT->>AUDIT: Registrar actualización
+    INCIDENT-->>SUPPORT: Ticket actualizado
+
+    %% 9. Cierre de sesión
+    SUPPORT->>API: DELETE /sessions/SES-001
+    API->>SESSION: Cerrar sesión
+    SESSION->>TRAIL: Generar trail de la sesión
+    TRAIL-->>SESSION: Trail persistido
+    SESSION->>SESSION: Liberar slot
+    SESSION-->>API: 200 OK
+    API-->>SUPPORT: Sesión finalizada
